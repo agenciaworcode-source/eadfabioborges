@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Certificado válido — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  body{ background:radial-gradient(120% 70% at 50% 0%,#eaf4ff,var(--bg) 55%); min-height:100vh; padding:40px 20px; }
+  .vbar{ max-width:880px; margin:0 auto 20px; display:flex; justify-content:space-between; align-items:center; }
+  .cert-doc{ max-width:880px; margin:0 auto; background:#fff; border-radius:var(--r-lg); box-shadow:var(--shadow-lg); overflow:hidden; }
+  .cert-top{ background:linear-gradient(120deg,var(--ink),#23262e); color:#fff; padding:22px 36px; display:flex; justify-content:space-between; align-items:center; }
+  .valid{ display:inline-flex; align-items:center; gap:8px; background:var(--green-tint); color:#178a4a; padding:7px 15px; border-radius:980px; font-weight:600; font-size:13.5px; }
+  .cert-inner{ padding:48px 60px 40px; position:relative; }
+  .cert-inner::before{ content:""; position:absolute; inset:18px; border:1.5px solid #e2ecfb; border-radius:14px; pointer-events:none; }
+  .z{ position:relative; }
+  .cert-eyebrow{ font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); text-align:center; }
+  .cert-name{ font-size:38px; font-weight:600; letter-spacing:-.03em; text-align:center; margin:18px 0 6px; }
+  .cert-line{ text-align:center; color:var(--muted); font-size:15px; }
+  .cert-course{ text-align:center; font-size:22px; font-weight:600; color:var(--blue-600); margin:6px 0 0; }
+  .grid-info{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:34px 0; }
+  .ginfo{ text-align:center; padding:16px; border:1px solid var(--line); border-radius:var(--r); }
+  .ginfo .l{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); }
+  .ginfo .v{ font-size:18px; font-weight:600; margin-top:5px; }
+  .cert-foot{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:30px; }
+  .sign{ text-align:center; }
+  .sign .ln{ font-family:'DM Sans'; font-size:26px; font-style:italic; color:var(--ink); border-bottom:1.5px solid var(--ink); padding:0 24px 4px; font-weight:500; }
+  .sign small{ display:block; margin-top:8px; color:var(--muted); }
+  .qr{ width:96px; height:96px; border-radius:12px; background:
+    repeating-conic-gradient(#000 0 25%, #fff 0 50%) 0 0/16px 16px,
+    #fff; border:4px solid #fff; box-shadow:0 0 0 1px var(--line); }
+  @media print{ .vbar{ display:none; } body{ background:#fff; padding:0; } .cert-doc{ box-shadow:none; } }
+  @media (max-width:720px){ .cert-inner{ padding:32px 24px; } .cert-name{ font-size:28px; } .grid-info{ grid-template-columns:1fr; } .cert-foot{ flex-direction:column; gap:24px; align-items:center; } }
+</style>
+</head>
+<body>
+<div class="vbar">
+  <a class="logo" href="home.html"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b>Fábio Borges</b><span>Mentoria Profissional em Estética</span></span></a>
+  <button class="btn btn-ghost btn-sm" onclick="window.print()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>Imprimir</button>
+</div>
+
+<div class="cert-doc">
+  <div class="cert-top">
+    <div class="logo" style="filter:brightness(0) invert(1)"><img src="assets/mb-logo.png" alt="MB" style="height:26px"><span class="lk"><b style="color:#fff">Fábio Borges</b><span style="color:rgba(255,255,255,.6)">Mentoria Profissional em Estética</span></span></div>
+    <span class="valid"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Certificado válido</span>
+  </div>
+
+  <div class="cert-inner">
+    <div class="z">
+      <div class="cert-eyebrow">Certificado de Conclusão</div>
+      <p class="cert-line" style="margin-top:24px">Certificamos que</p>
+      <div class="cert-name">Maria Silva</div>
+      <p class="cert-line">concluiu com aproveitamento o curso</p>
+      <div class="cert-course">Eletroterapia & Recursos Estéticos</div>
+
+      <div class="grid-info">
+        <div class="ginfo"><div class="l">Carga horária</div><div class="v">16 horas</div></div>
+        <div class="ginfo"><div class="l">Nota final</div><div class="v">9,4 / 10</div></div>
+        <div class="ginfo"><div class="l">Concluído em</div><div class="v">28 mai 2026</div></div>
+      </div>
+
+      <div class="cert-foot">
+        <div class="sign"><div class="ln">Fábio Borges</div><small>Mentor · Fábio Borges Mentoria</small></div>
+        <div style="text-align:center"><div class="qr"></div><small class="muted" style="font-size:11px;display:block;margin-top:8px">Verificar autenticidade</small></div>
+      </div>
+
+      <p class="center muted" style="font-size:12px;margin-top:30px;letter-spacing:.02em">Código de verificação: <b style="color:var(--ink)">MB-2026-EL-9F3A82</b> · fabioborges.com.br/certificado</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

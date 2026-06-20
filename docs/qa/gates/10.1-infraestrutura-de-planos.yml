@@ -1,0 +1,8 @@
+schema: 1
+story: '10.1'
+gate: PASS
+status_reason: 'All 10 ACs verified against actual code. Config centralizada, migration com seed+RLS, gateway adapter extensivel, checkout APIs com auth, admin UI com edicao inline, precos do banco no /planos, PLAN_PRICES removido, lint e typecheck limpos.'
+reviewer: 'Quinn'
+updated: '2026-06-11T22:00:00Z'
+top_issues: []
+waiver: { active: false }

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eletroterapia & Recursos Estéticos — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  .cl-hero{ background:var(--ink); color:#fff; padding:48px 0 56px; }
+  .cl-grid{ display:grid; grid-template-columns:1fr 372px; gap:40px; align-items:start; }
+  .cl-hero .cl-grid{ align-items:center; }
+  .cl-hero .meta{ display:flex; gap:14px; flex-wrap:wrap; color:rgba(255,255,255,.7); font-size:14px; margin-top:18px; }
+  .cl-hero h1{ font-size:clamp(30px,4vw,44px); margin-top:14px; }
+  .cl-thumb{ aspect-ratio:16/9; border-radius:var(--r-lg); overflow:hidden; background:linear-gradient(150deg,#0e2a4d,#1f6fd6 60%,#48a1fe); display:grid; place-items:center; box-shadow:var(--shadow-lg); position:relative; }
+  .cl-thumb .play{ width:74px; height:74px; border-radius:50%; background:rgba(255,255,255,.95); display:grid; place-items:center; color:var(--ink); }
+  .panel{ background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); box-shadow:var(--shadow); overflow:hidden; }
+  .body-grid{ display:grid; grid-template-columns:1fr 372px; gap:40px; align-items:start; padding:48px 0; }
+  .sticky{ position:sticky; top:84px; }
+  .sec{ margin-bottom:40px; }
+  .sec h2{ font-size:26px; margin-bottom:18px; }
+  .mod{ border:1px solid var(--line); border-radius:var(--r); margin-bottom:10px; overflow:hidden; background:#fff; }
+  .mod summary{ list-style:none; cursor:pointer; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; font-weight:600; }
+  .mod summary::-webkit-details-marker{ display:none; }
+  .mod .lessons{ border-top:1px solid var(--line); }
+  .mod .lesson{ display:flex; align-items:center; gap:12px; padding:13px 18px; font-size:14.5px; color:var(--ink-2); border-bottom:1px solid var(--line); }
+  .mod .lesson:last-child{ border-bottom:0; }
+  .mod .lesson .pl{ width:26px; height:26px; border-radius:50%; background:var(--blue-tint); color:var(--blue-600); display:grid; place-items:center; flex:none; }
+  .mod .lesson .dur{ margin-left:auto; color:var(--faint); font-size:13px; }
+  .mod[open] summary .chev{ transform:rotate(180deg); }
+  .chev{ transition:transform .2s; color:var(--faint); }
+  .learn{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .learn div{ display:flex; gap:11px; font-size:15px; color:var(--ink-2); }
+  .learn svg{ color:var(--blue-600); flex:none; margin-top:3px; }
+  .insta{ display:flex; gap:20px; align-items:flex-start; background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); padding:26px; }
+  .price-panel .pp{ font-size:38px; font-weight:600; letter-spacing:-.03em; }
+  .price-panel .old{ color:var(--faint); text-decoration:line-through; font-size:16px; }
+  .price-panel ul{ list-style:none; padding:0; margin:18px 0; display:flex; flex-direction:column; gap:11px; }
+  .price-panel li{ display:flex; gap:10px; font-size:14px; color:var(--ink-2); }
+  .price-panel li svg{ color:var(--blue-600); flex:none; }
+  .tcard{ background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); padding:24px; }
+  @media (max-width:900px){ .cl-grid,.body-grid{ grid-template-columns:1fr; } .sticky{ position:static; } .learn{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<nav class="pubnav"><div class="wrap">
+  <a class="logo" href="home.html"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b>Fábio Borges</b><span>Mentoria Profissional em Estética</span></span></a>
+  <div class="links"><a href="home.html">Início</a><a href="cursos.html">Cursos</a><a href="planos.html">Planos</a><a href="curso.html" style="color:var(--blue-600)">Para clínicas</a></div>
+  <div class="flex aic gap12"><a class="btn btn-ghost btn-sm" href="login.html">Entrar</a><a class="btn btn-primary btn-sm" href="cadastro.html">Começar agora</a></div>
+</div></nav>
+
+<header class="cl-hero"><div class="wrap"><div class="cl-grid">
+  <div>
+    <span class="badge blue">Estética avançada</span>
+    <h1>Eletroterapia & Recursos Estéticos</h1>
+    <p style="color:rgba(255,255,255,.75);font-size:17px;margin-top:14px;max-width:46ch">Domine correntes terapêuticas, ultrassom e protocolos de eletrotermoterapia para resultados clínicos reais.</p>
+    <div class="meta"><span>★ 4,9 (842 avaliações)</span><span>· 16h de conteúdo</span><span>· 8 módulos</span><span>· Nível intermediário</span></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:22px"><div class="avatar" style="background:var(--blue)">FB</div><div><div style="font-weight:600;font-size:14px">Fábio Borges</div><div style="color:rgba(255,255,255,.6);font-size:13px">Mentor & especialista</div></div></div>
+  </div>
+  <div class="cl-thumb"><div class="play"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div></div>
+</div></div></header>
+
+<section class="wrap"><div class="body-grid">
+  <div>
+    <div class="sec">
+      <h2>O que você vai aprender</h2>
+      <div class="learn">
+        <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Indicar correntes terapêuticas com segurança</div>
+        <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Protocolos de ultrassom estético</div>
+        <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Avaliação e anamnese da cliente</div>
+        <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Combinação de recursos por objetivo</div>
+        <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Contraindicações e segurança</div>
+        <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Precificação de protocolos avançados</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Conteúdo do curso</h2>
+      <details class="mod" open><summary>Módulo 1 · Fundamentos da eletrotermoterapia <span class="flex aic gap12"><span class="faint" style="font-size:13px;font-weight:500">4 aulas · 2h10</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="lessons">
+          <div class="lesson"><span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Introdução & boas-vindas<span class="dur">8 min</span></div>
+          <div class="lesson"><span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Princípios das correntes<span class="dur">22 min</span></div>
+          <div class="lesson"><span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Equipamentos essenciais<span class="dur">31 min</span></div>
+          <div class="lesson"><span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Segurança e contraindicações<span class="dur">29 min</span></div>
+        </div>
+      </details>
+      <details class="mod"><summary>Módulo 2 · Ultrassom estético na prática <span class="flex aic gap12"><span class="faint" style="font-size:13px;font-weight:500">5 aulas · 2h40</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="lessons"><div class="lesson"><span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Parâmetros e dosagem<span class="dur">26 min</span></div><div class="lesson"><span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Protocolo facial passo a passo<span class="dur">38 min</span></div></div>
+      </details>
+      <details class="mod"><summary>Módulo 3 · Protocolos combinados <span class="flex aic gap12"><span class="faint" style="font-size:13px;font-weight:500">6 aulas · 3h05</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="lessons"><div class="lesson"><span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Montando um pacote de tratamento<span class="dur">34 min</span></div></div>
+      </details>
+      <details class="mod"><summary>Módulo 4 · Gestão e precificação <span class="flex aic gap12"><span class="faint" style="font-size:13px;font-weight:500">3 aulas · 1h20</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="lessons"><div class="lesson"><span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Como precificar protocolos<span class="dur">28 min</span></div></div>
+      </details>
+    </div>
+
+    <div class="sec">
+      <h2>Sobre o instrutor</h2>
+      <div class="insta">
+        <div class="avatar lg" style="background:var(--ink)">FB</div>
+        <div>
+          <h3 style="font-size:19px">Fábio Borges</h3>
+          <p class="muted" style="font-size:13.5px;margin:3px 0 12px">Especialista em recursos eletrotermoterapêuticos · 15 anos de clínica</p>
+          <p style="font-size:15px;color:var(--ink-2);line-height:1.6">Referência em estética avançada, Fábio já formou mais de 12.000 profissionais. Sua metodologia une base científica e prática de consultório, com foco em resultado real e segurança para a cliente.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>O que dizem as alunas</h2>
+      <div class="grid g2">
+        <div class="tcard"><div style="color:var(--blue);letter-spacing:2px">★★★★★</div><p style="margin:12px 0;font-size:15px;color:var(--ink-2)">"Finalmente entendi os parâmetros sem decoreba. Apliquei na clínica na mesma semana."</p><div class="flex aic gap12"><div class="avatar sm">PL</div><b style="font-size:14px">Paula Lima</b></div></div>
+        <div class="tcard"><div style="color:var(--blue);letter-spacing:2px">★★★★★</div><p style="margin:12px 0;font-size:15px;color:var(--ink-2)">"O módulo de precificação sozinho já pagou o curso. Conteúdo denso e direto."</p><div class="flex aic gap12"><div class="avatar sm" style="background:#2bbf6a">TM</div><b style="font-size:14px">Tatiane Moraes</b></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STICKY BUY PANEL -->
+  <aside class="sticky">
+    <div class="panel price-panel" style="padding:26px">
+      <div class="flex aic gap12"><span class="pp">R$ 397</span><span class="old">R$ 597</span></div>
+      <p class="muted" style="font-size:13.5px;margin-top:4px">ou 12x de R$ 38,90 · acesso vitalício</p>
+      <a class="btn btn-primary btn-lg btn-block" href="checkout-sucesso.html" style="margin-top:18px">Comprar curso</a>
+      <a class="btn btn-ghost btn-block" href="planos.html" style="margin-top:10px">Assinar e ter acesso a tudo</a>
+      <hr class="soft-divider" style="margin:20px 0">
+      <ul>
+        <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>16h de vídeo aulas</li>
+        <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Materiais para download</li>
+        <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Certificado de conclusão</li>
+        <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Acesso vitalício e atualizações</li>
+      </ul>
+      <div class="card-pad" style="background:var(--blue-tint);border-radius:var(--r);text-align:center">
+        <div style="font-size:13px;color:var(--blue-700);font-weight:600">Incluído no plano Ouro</div>
+        <div class="muted" style="font-size:12.5px;margin-top:3px">Assine por R$ 197/mês e libere todos os cursos.</div>
+      </div>
+    </div>
+  </aside>
+</div></section>
+
+<footer class="foot"><div class="wrap"><div class="cols">
+  <div><a class="logo" href="home.html"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b>Fábio Borges</b><span>Mentoria Profissional em Estética</span></span></a><p class="muted" style="font-size:14px;margin-top:16px;max-width:34ch">Especialização em recursos eletrotermoterapêuticos e estética avançada.</p></div>
+  <div><h4>Plataforma</h4><a href="cursos.html">Cursos</a><a href="planos.html">Planos</a></div>
+  <div><h4>Recursos</h4><a href="certificado.html">Verificar certificado</a><a href="#">Suporte</a></div>
+  <div><h4>Contato</h4><a href="#">Instagram</a><a href="#">WhatsApp</a></div>
+</div><div class="bottom"><span>© 2026 Fábio Borges Mentoria.</span><span>Termos · Privacidade</span></div></div></footer>
+</body>
+</html>

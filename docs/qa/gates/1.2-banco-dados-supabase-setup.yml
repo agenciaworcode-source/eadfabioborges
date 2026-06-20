@@ -1,0 +1,25 @@
+schema: 1
+story: '1.2'
+gate: PASS
+status_reason: 'Todas as 13 tabelas criadas, RLS ativo em 100% das tabelas, seed aplicado, build e typecheck limpos.'
+reviewer: 'Quinn'
+updated: '2026-06-05T14:30:00Z'
+top_issues:
+  - id: 'DOC-001'
+    severity: low
+    finding: 'src/types/database.ts gerado manualmente (postgres-meta container ainda baixando imagens)'
+    suggested_action: 'Regenerar via `npx supabase gen types typescript --local` quando todos os containers estiverem ativos para garantir sincronia automática'
+  - id: 'TEST-001'
+    severity: low
+    finding: 'Zero testes unitários — esperado para story de scaffold/infra, mas RLS policies não têm cobertura automatizada'
+    suggested_action: 'Adicionar testes de integração para RLS na Story 2.x (auth) — validar que lição bloqueia sem enrollment'
+waiver: { active: false }
+checks:
+  tabelas: PASS        # 13/13 tabelas confirmadas via psql
+  rls: PASS            # rowsecurity=true em todas as 13 tabelas
+  seed: PASS           # 3 cursos, 6 módulos, 30 aulas inseridos
+  policies: PASS       # 30 policies criadas
+  typecheck: PASS      # tsc --noEmit exit 0
+  build: PASS          # next build limpo, 2 rotas estáticas
+  test: PASS           # vitest --passWithNoTests exit 0
+  security: PASS       # RLS gate crítico lessons implementado corretamente (enrollment OR subscription)

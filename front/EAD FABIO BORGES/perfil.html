@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perfil — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  .pf-grid{ display:grid; grid-template-columns:1fr 320px; gap:28px; align-items:start; }
+  .upload{ display:flex; align-items:center; gap:20px; }
+  .upload .ph{ position:relative; }
+  .upload .cam{ position:absolute; right:-2px; bottom:-2px; width:30px; height:30px; border-radius:50%; background:var(--blue); color:#fff; display:grid; place-items:center; border:3px solid #fff; }
+  @media (max-width:900px){ .pf-grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><a class="logo" href="home.html"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b>Fábio Borges</b><span>Mentoria</span></span></a></div>
+    <div class="nav-group">Menu</div>
+    <a class="nav-link" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>Visão geral</a>
+    <a class="nav-link" href="meus-cursos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Meus cursos</a>
+    <a class="nav-link" href="certificados.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5"/></svg>Certificados</a>
+    <div class="nav-group">Conta</div>
+    <a class="nav-link" href="meu-plano.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Meu plano</a>
+    <a class="nav-link active" href="perfil.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Perfil</a>
+    <a class="nav-link" href="cursos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Explorar cursos</a>
+    <div class="user"><div class="avatar">MS</div><div style="min-width:0"><div style="font-weight:600;font-size:13.5px">Maria Silva</div><div class="plan-badge plan-ouro" style="margin-top:3px;padding:2px 8px;font-size:10.5px">Ouro</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar"><div class="crumb"><a href="dashboard.html">Início</a> <span>›</span> <b>Perfil</b></div><div class="avatar sm">MS</div></div>
+    <div class="content wide">
+      <h1 style="font-size:28px">Perfil</h1>
+      <p class="muted" style="margin-top:6px">Gerencie suas informações pessoais e segurança.</p>
+
+      <div class="pf-grid" style="margin-top:24px">
+        <div class="col gap24">
+          <div class="card card-pad">
+            <div class="upload">
+              <div class="ph"><div class="avatar lg">MS</div><div class="cam"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div></div>
+              <div><div style="font-weight:600">Foto de perfil</div><p class="muted" style="font-size:13.5px;margin:3px 0 10px">JPG ou PNG, até 4MB.</p><div class="flex gap8"><button class="btn btn-ghost btn-sm">Enviar nova</button><button class="btn btn-ghost btn-sm" style="color:#d23b3b;border-color:#f3d2d2">Remover</button></div></div>
+            </div>
+            <hr class="soft-divider" style="margin:24px 0">
+            <div class="grid g2">
+              <div class="field"><label>Nome completo</label><input class="input" value="Maria Silva"></div>
+              <div class="field"><label>E-mail</label><input class="input" value="maria@email.com" readonly style="background:var(--surface-2);color:var(--muted)"></div>
+              <div class="field"><label>Especialidade</label><input class="input" value="Esteticista · Eletroterapia"></div>
+              <div class="field"><label>Cidade</label><input class="input" value="Campinas, SP"></div>
+            </div>
+            <div class="field" style="margin-top:18px"><label>Bio</label><textarea class="input" rows="3" style="resize:vertical">Esteticista há 6 anos, especializada em protocolos faciais e eletroterapia. Apaixonada por resultados reais.</textarea></div>
+            <div class="flex gap12" style="margin-top:20px"><button class="btn btn-primary">Salvar alterações</button><button class="btn btn-ghost">Cancelar</button></div>
+          </div>
+
+          <div class="card card-pad">
+            <h3 style="font-size:18px">Alterar senha</h3>
+            <div class="grid g2" style="margin-top:16px">
+              <div class="field" style="grid-column:1/-1"><label>Senha atual</label><input class="input" type="password" placeholder="••••••••"></div>
+              <div class="field"><label>Nova senha</label><input class="input" type="password" placeholder="••••••••"></div>
+              <div class="field"><label>Confirmar nova senha</label><input class="input" type="password" placeholder="••••••••"></div>
+            </div>
+            <button class="btn btn-dark" style="margin-top:18px">Atualizar senha</button>
+          </div>
+        </div>
+
+        <aside class="col gap24">
+          <div class="card card-pad center">
+            <div class="avatar lg" style="margin:0 auto">MS</div>
+            <h3 style="font-size:18px;margin-top:14px">Maria Silva</h3>
+            <p class="muted" style="font-size:13.5px">Membro desde Jan 2026</p>
+            <span class="plan-badge plan-ouro" style="margin-top:12px">Plano Ouro</span>
+          </div>
+          <div class="card card-pad">
+            <div class="flex between"><span class="muted" style="font-size:13.5px">Cursos concluídos</span><b>2</b></div>
+            <hr class="soft-divider" style="margin:12px 0">
+            <div class="flex between"><span class="muted" style="font-size:13.5px">Certificados</span><b>2</b></div>
+            <hr class="soft-divider" style="margin:12px 0">
+            <div class="flex between"><span class="muted" style="font-size:13.5px">Horas assistidas</span><b>42h</b></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

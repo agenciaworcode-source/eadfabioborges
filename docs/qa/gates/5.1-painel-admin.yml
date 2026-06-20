@@ -1,0 +1,31 @@
+schema: 1
+story: '5.1'
+gate: CONCERNS
+status_reason: >
+  Todos os 9 ACs implementados, lint e typecheck passando, segurança verificada em todas as API routes.
+  Três pontos não-bloqueadores registrados como tech debt para sprints futuras.
+reviewer: Quinn
+updated: '2026-06-09T01:00:00Z'
+correction_pass: '2026-06-09T01:00:00Z'
+correction_pass_result: >
+  7 arquivos corrigidos: visual gaps vs HTML referência resolvidos.
+  UX-001 corrigido. TEST-001 e MNT-001 permanecem como tech debt.
+  Lint e typecheck passando após correction pass.
+top_issues:
+  - id: 'TEST-001'
+    severity: medium
+    finding: 'Sem testes automatizados para as 3 API routes admin (enroll, courses POST/PATCH)'
+    suggested_action: 'Adicionar testes de integração para as rotas admin em sprint dedicada de testes'
+
+  - id: 'MNT-001'
+    severity: low
+    finding: 'Funções utilitárias duplicadas: initials(), PLAN_LABELS, PLAN_PRICES definidas em 4+ arquivos (admin/page.tsx, AdminAlunosClient.tsx, AdminAlunoModal.tsx, relatorios/page.tsx)'
+    suggested_action: 'Extrair para src/lib/admin/utils.ts em sprint de refatoração'
+
+  - id: 'UX-001'
+    severity: low
+    finding: 'Paginação em AdminAlunosClient exibe "Mostrando 1–0 de 0" quando filtered.length === 0'
+    suggested_action: 'Adicionar guard: quando filtered.length === 0, não exibir o texto de paginação ou exibir "0 resultados"'
+
+waiver:
+  active: false

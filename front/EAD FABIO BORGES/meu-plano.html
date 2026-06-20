@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meu Plano — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  .plan-hero{ background:linear-gradient(120deg,var(--ink),#23262e); color:#fff; border-radius:var(--r-lg); padding:30px; display:grid; grid-template-columns:1fr auto; gap:24px; align-items:center; position:relative; overflow:hidden; }
+  .plan-hero .glow{ position:absolute; width:280px; height:280px; right:-40px; top:-100px; border-radius:50%; background:radial-gradient(circle,rgba(72,161,254,.45),transparent 70%); }
+  .plan-hero .z{ position:relative; }
+  .pg{ display:grid; grid-template-columns:1fr 320px; gap:24px; align-items:start; margin-top:24px; }
+  .benefit-li{ display:flex; gap:10px; align-items:center; font-size:14.5px; color:var(--ink-2); padding:9px 0; }
+  .benefit-li svg{ color:var(--blue-600); flex:none; }
+  @media (max-width:900px){ .pg{ grid-template-columns:1fr; } .plan-hero{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><a class="logo" href="home.html"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b>Fábio Borges</b><span>Mentoria</span></span></a></div>
+    <div class="nav-group">Menu</div>
+    <a class="nav-link" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>Visão geral</a>
+    <a class="nav-link" href="meus-cursos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Meus cursos</a>
+    <a class="nav-link" href="certificados.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5"/></svg>Certificados</a>
+    <div class="nav-group">Conta</div>
+    <a class="nav-link active" href="meu-plano.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Meu plano</a>
+    <a class="nav-link" href="perfil.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Perfil</a>
+    <a class="nav-link" href="cursos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Explorar cursos</a>
+    <div class="user"><div class="avatar">MS</div><div style="min-width:0"><div style="font-weight:600;font-size:13.5px">Maria Silva</div><div class="plan-badge plan-ouro" style="margin-top:3px;padding:2px 8px;font-size:10.5px">Ouro</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar"><div class="crumb"><a href="dashboard.html">Início</a> <span>›</span> <b>Meu plano</b></div><div class="avatar sm">MS</div></div>
+    <div class="content wide">
+      <h1 style="font-size:28px">Meu plano</h1>
+
+      <div class="plan-hero" style="margin-top:20px">
+        <div class="z">
+          <span class="plan-badge plan-ouro" style="background:rgba(72,161,254,.2);color:#9ecbff">Plano Ouro · Ativo</span>
+          <div style="font-size:30px;font-weight:600;letter-spacing:-.03em;margin:12px 0 4px">R$ 197<span style="font-size:15px;color:rgba(255,255,255,.6);font-weight:500">/mês</span></div>
+          <p style="color:rgba(255,255,255,.65);font-size:14px">Renova em <b style="color:#fff">15 de julho de 2026</b> · próxima cobrança R$ 197,00</p>
+        </div>
+        <div class="z flex gap12"><a class="btn btn-primary" href="planos.html">Fazer upgrade</a><button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)">Gerenciar</button></div>
+      </div>
+
+      <div class="pg">
+        <div class="col gap24">
+          <div class="card card-pad">
+            <h3 style="font-size:18px">Histórico de pagamentos</h3>
+            <table class="tbl" style="margin-top:14px">
+              <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>15 jun 2026</td><td>Plano Ouro — mensal</td><td>R$ 197,00</td><td><span class="badge green dot">Pago</span></td><td><a class="blue" href="#" style="font-weight:600">Recibo</a></td></tr>
+                <tr><td>15 mai 2026</td><td>Plano Ouro — mensal</td><td>R$ 197,00</td><td><span class="badge green dot">Pago</span></td><td><a class="blue" href="#" style="font-weight:600">Recibo</a></td></tr>
+                <tr><td>15 abr 2026</td><td>Plano Ouro — mensal</td><td>R$ 197,00</td><td><span class="badge green dot">Pago</span></td><td><a class="blue" href="#" style="font-weight:600">Recibo</a></td></tr>
+                <tr><td>02 abr 2026</td><td>Micropigmentação (avulso)</td><td>R$ 497,00</td><td><span class="badge green dot">Pago</span></td><td><a class="blue" href="#" style="font-weight:600">Recibo</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <aside class="card card-pad">
+          <h3 style="font-size:16px">Incluído no seu plano</h3>
+          <div style="margin-top:8px">
+            <div class="benefit-li"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Todos os 6 cursos</div>
+            <div class="benefit-li"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Quizzes e avaliações</div>
+            <div class="benefit-li"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Certificados ilimitados</div>
+            <div class="benefit-li"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Materiais para download</div>
+            <div class="benefit-li"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Suporte prioritário</div>
+          </div>
+          <hr class="soft-divider" style="margin:16px 0">
+          <div class="card-pad" style="background:var(--blue-tint);border-radius:var(--r);padding:16px">
+            <div style="font-weight:600;font-size:14px;color:var(--blue-700)">Suba para Diamante</div>
+            <p class="muted" style="font-size:13px;margin:5px 0 12px">Mentoria ao vivo mensal + certificado prioritário por R$ 397/mês.</p>
+            <a class="btn btn-primary btn-sm btn-block" href="planos.html">Ver detalhes</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

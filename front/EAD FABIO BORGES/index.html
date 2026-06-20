@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mentoria Fábio Borges — Plataforma EAD</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  .ix-hero{ padding:54px 0 30px; }
+  .ix-hero h1{ font-size:clamp(34px,5vw,52px); }
+  .palette{ display:flex; gap:14px; flex-wrap:wrap; margin-top:26px; }
+  .sw{ display:flex; align-items:center; gap:11px; background:#fff; border:1px solid var(--line); border-radius:980px; padding:7px 16px 7px 7px; font-size:13px; font-weight:500; }
+  .sw .dot{ width:26px; height:26px; border-radius:50%; flex:none; box-shadow:inset 0 0 0 1px rgba(0,0,0,.07); }
+  .sech{ display:flex; align-items:baseline; gap:14px; margin:48px 0 20px; }
+  .sech h2{ font-size:24px; }
+  .sech .ct{ font-size:13px; color:var(--faint); font-weight:600; }
+  .gal{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px; }
+  .scard{ display:block; }
+  .frame{ position:relative; width:100%; aspect-ratio:1440/900; border-radius:var(--r); overflow:hidden; border:1px solid var(--line-2); background:#fff; box-shadow:var(--shadow-xs); transition:transform .18s, box-shadow .18s; }
+  .scard:hover .frame{ transform:translateY(-4px); box-shadow:var(--shadow); border-color:var(--blue); }
+  .frame iframe{ position:absolute; top:0; left:0; width:400%; height:400%; border:0; transform:scale(.25); transform-origin:top left; pointer-events:none; }
+  .scard .cap{ display:flex; align-items:center; justify-content:space-between; margin-top:11px; }
+  .scard .cap b{ font-size:14.5px; font-weight:600; }
+  .scard .cap .rt{ font-size:12px; color:var(--faint); font-family:ui-monospace,monospace; }
+  .num-pill{ width:22px; height:22px; border-radius:50%; background:var(--blue-tint); color:var(--blue-700); font-size:11px; font-weight:700; display:inline-grid; place-items:center; margin-right:8px; }
+  /* mobile devices */
+  .devs{ display:flex; gap:34px; flex-wrap:wrap; }
+  .phone{ width:300px; }
+  .bezel{ background:#0c0d10; border-radius:38px; padding:10px; box-shadow:var(--shadow-lg); }
+  .pscreen{ position:relative; width:100%; aspect-ratio:300/650; border-radius:30px; overflow:hidden; background:#fff; }
+  .pscreen iframe{ position:absolute; top:0; left:0; width:390px; height:905px; border:0; transform:scale(.7179); transform-origin:top left; pointer-events:none; }
+  .phone .plabel{ text-align:center; margin-top:14px; font-size:14px; font-weight:600; }
+  .legend{ background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); padding:6px; display:inline-flex; gap:4px; margin-top:8px; }
+  .legend a{ padding:8px 15px; border-radius:980px; font-size:13.5px; font-weight:600; color:var(--muted); }
+  .legend a:hover{ background:var(--surface-2); color:var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="ix-hero">
+    <div class="logo" style="margin-bottom:22px"><img src="assets/mb-logo.png" alt="MB" style="height:38px"><span class="lk"><b style="font-size:17px">Fábio Borges</b><span style="font-size:11.5px">Mentoria Profissional em Estética</span></span></div>
+    <span class="eyebrow">Plataforma EAD · 21 telas</span>
+    <h1 style="margin-top:12px">Sistema de design<br>& mapa de telas</h1>
+    <p class="muted" style="font-size:17px;margin-top:14px;max-width:54ch">Tema claro, estética minimalista, tipografia DM Sans e azul de marca. Clique em qualquer tela para abri-la em tamanho real.</p>
+
+    <div class="palette">
+      <div class="sw"><span class="dot" style="background:#48a1fe"></span>Azul · #48A1FE</div>
+      <div class="sw"><span class="dot" style="background:#f2f2f2"></span>Fundo · #F2F2F2</div>
+      <div class="sw"><span class="dot" style="background:#ffffff"></span>Superfície · #FFF</div>
+      <div class="sw"><span class="dot" style="background:#1d1d1f"></span>Tinta · #1D1D1F</div>
+      <div class="sw"><span class="dot" style="background:#fff;font-family:'DM Sans'"></span>DM Sans</div>
+    </div>
+
+    <div class="legend">
+      <a href="#publicas">Públicas</a><a href="#aluno">Área do aluno</a><a href="#checkout">Checkout</a><a href="#admin">Admin</a><a href="#mobile">Mobile</a>
+    </div>
+  </header>
+
+  <!-- PÚBLICAS -->
+  <section id="publicas">
+    <div class="sech"><h2>Públicas · Marketing</h2><span class="ct">7 telas</span></div>
+    <div class="gal">
+      <a class="scard" href="home.html"><div class="frame"><iframe src="home.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">1</span>Home / Landing</b><span class="rt">/</span></div></a>
+      <a class="scard" href="planos.html"><div class="frame"><iframe src="planos.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">2</span>Planos</b><span class="rt">/planos</span></div></a>
+      <a class="scard" href="cursos.html"><div class="frame"><iframe src="cursos.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">3</span>Catálogo de cursos</b><span class="rt">/cursos</span></div></a>
+      <a class="scard" href="curso.html"><div class="frame"><iframe src="curso.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">4</span>Curso (venda)</b><span class="rt">/cursos/[slug]</span></div></a>
+      <a class="scard" href="login.html"><div class="frame"><iframe src="login.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">5</span>Login</b><span class="rt">/auth/login</span></div></a>
+      <a class="scard" href="cadastro.html"><div class="frame"><iframe src="cadastro.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">6</span>Cadastro</b><span class="rt">/auth/cadastro</span></div></a>
+      <a class="scard" href="recuperar-senha.html"><div class="frame"><iframe src="recuperar-senha.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">7</span>Recuperar senha</b><span class="rt">/auth/recuperar</span></div></a>
+    </div>
+  </section>
+
+  <!-- ALUNO -->
+  <section id="aluno">
+    <div class="sech"><h2>Área do aluno</h2><span class="ct">7 telas · core</span></div>
+    <div class="gal">
+      <a class="scard" href="dashboard.html"><div class="frame"><iframe src="dashboard.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">8</span>Dashboard</b><span class="rt">/dashboard</span></div></a>
+      <a class="scard" href="meus-cursos.html"><div class="frame"><iframe src="meus-cursos.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">9</span>Meus cursos</b><span class="rt">/dashboard/cursos</span></div></a>
+      <a class="scard" href="curso-aluno.html"><div class="frame"><iframe src="curso-aluno.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">10</span>Página do curso</b><span class="rt">/curso/[id]</span></div></a>
+      <a class="scard" href="player.html"><div class="frame"><iframe src="player.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">11</span>Player de aula</b><span class="rt">/aula/[id]</span></div></a>
+      <a class="scard" href="perfil.html"><div class="frame"><iframe src="perfil.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">12</span>Perfil</b><span class="rt">/dashboard/perfil</span></div></a>
+      <a class="scard" href="meu-plano.html"><div class="frame"><iframe src="meu-plano.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">13</span>Meu plano</b><span class="rt">/dashboard/plano</span></div></a>
+      <a class="scard" href="certificados.html"><div class="frame"><iframe src="certificados.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">14</span>Certificados</b><span class="rt">/certificados</span></div></a>
+    </div>
+  </section>
+
+  <!-- CHECKOUT -->
+  <section id="checkout">
+    <div class="sech"><h2>Checkout</h2><span class="ct">2 telas</span></div>
+    <div class="gal">
+      <a class="scard" href="checkout-sucesso.html"><div class="frame"><iframe src="checkout-sucesso.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">15</span>Pagamento aprovado</b><span class="rt">/checkout/sucesso</span></div></a>
+      <a class="scard" href="checkout-cancelado.html"><div class="frame"><iframe src="checkout-cancelado.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">16</span>Pagamento cancelado</b><span class="rt">/checkout/cancelado</span></div></a>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="admin">
+    <div class="sech"><h2>Administração</h2><span class="ct">4 telas</span></div>
+    <div class="gal">
+      <a class="scard" href="admin.html"><div class="frame"><iframe src="admin.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">17</span>Painel admin</b><span class="rt">/admin/dashboard</span></div></a>
+      <a class="scard" href="admin-alunos.html"><div class="frame"><iframe src="admin-alunos.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">18</span>Gestão de alunos</b><span class="rt">/admin/alunos</span></div></a>
+      <a class="scard" href="admin-cursos.html"><div class="frame"><iframe src="admin-cursos.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">19</span>Gestão de cursos</b><span class="rt">/admin/cursos</span></div></a>
+      <a class="scard" href="admin-relatorios.html"><div class="frame"><iframe src="admin-relatorios.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">20</span>Relatórios</b><span class="rt">/admin/relatorios</span></div></a>
+    </div>
+  </section>
+
+  <!-- VERIFICAÇÃO -->
+  <section>
+    <div class="sech"><h2>Verificação pública</h2><span class="ct">1 tela</span></div>
+    <div class="gal">
+      <a class="scard" href="certificado.html"><div class="frame"><iframe src="certificado.html" scrolling="no" tabindex="-1"></iframe></div><div class="cap"><b><span class="num-pill">21</span>Certificado válido</b><span class="rt">/certificado/[uuid]</span></div></a>
+    </div>
+  </section>
+
+  <!-- MOBILE -->
+  <section id="mobile">
+    <div class="sech"><h2>Versões mobile</h2><span class="ct">páginas-chave</span></div>
+    <div class="devs">
+      <div class="phone"><div class="bezel"><div class="pscreen"><iframe src="home.html" scrolling="no" tabindex="-1"></iframe></div></div><div class="plabel">Home</div></div>
+      <div class="phone"><div class="bezel"><div class="pscreen"><iframe src="dashboard.html" scrolling="no" tabindex="-1"></iframe></div></div><div class="plabel">Dashboard</div></div>
+      <div class="phone"><div class="bezel"><div class="pscreen"><iframe src="planos.html" scrolling="no" tabindex="-1"></iframe></div></div><div class="plabel">Planos</div></div>
+      <div class="phone"><div class="bezel"><div class="pscreen"><iframe src="login.html" scrolling="no" tabindex="-1"></iframe></div></div><div class="plabel">Login</div></div>
+    </div>
+  </section>
+
+  <footer style="margin:60px 0 50px;padding-top:24px;border-top:1px solid var(--line);color:var(--faint);font-size:13px;display:flex;justify-content:space-between">
+    <span>© 2026 Fábio Borges Mentoria · Plataforma EAD</span>
+    <span>21 telas · tema claro · DM Sans · #48A1FE</span>
+  </footer>
+</div>
+</body>
+</html>

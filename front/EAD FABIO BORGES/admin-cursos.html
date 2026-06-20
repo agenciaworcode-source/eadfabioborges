@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Cursos — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  .ac-grid{ display:grid; grid-template-columns:1fr 380px; gap:24px; align-items:start; }
+  .crow{ display:flex; align-items:center; gap:14px; padding:14px; border:1px solid var(--line); border-radius:var(--r); background:#fff; margin-bottom:10px; cursor:pointer; transition:border-color .15s; }
+  .crow:hover{ border-color:var(--blue); }
+  .crow.sel{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(72,161,254,.12); }
+  .crow .mini{ width:64px; height:40px; border-radius:8px; flex:none; }
+  .editor{ position:sticky; top:20px; }
+  .mod-edit{ display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:11px; margin-bottom:8px; font-size:14px; }
+  .mod-edit .gr{ color:var(--faint); cursor:grab; }
+  @media (max-width:900px){ .ac-grid{ grid-template-columns:1fr; } .editor{ position:static; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side admin">
+    <div class="brand"><a class="logo" href="home.html" style="filter:brightness(0) invert(1)"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b style="color:#fff">Fábio Borges</b><span style="color:#7c828c">Admin</span></span></a></div>
+    <div class="nav-group">Gestão</div>
+    <a class="nav-link" href="admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</a>
+    <a class="nav-link" href="admin-alunos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2"/><circle cx="17" cy="9" r="3"/><path d="M22 21v-1a5 5 0 0 0-4-4.9"/></svg>Alunos</a>
+    <a class="nav-link active" href="admin-cursos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Cursos</a>
+    <a class="nav-link" href="admin-relatorios.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>Relatórios</a>
+    <div class="nav-group">Plataforma</div>
+    <a class="nav-link" href="home.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Ver site</a>
+    <div class="user"><div class="avatar" style="background:var(--blue)">FB</div><div style="min-width:0"><div style="font-weight:600;font-size:13.5px">Fábio Borges</div><div style="font-size:11.5px;color:#9ca3ae">Administrador</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar"><div class="crumb"><a href="admin.html">Admin</a> <span>›</span> <b>Cursos</b></div><div class="avatar sm" style="background:var(--ink)">FB</div></div>
+    <div class="content wide">
+      <div class="flex between aic"><div><h1 style="font-size:26px">Cursos</h1><p class="muted" style="margin-top:5px;font-size:14px">6 cursos · 5 publicados, 1 rascunho</p></div><button class="btn btn-primary"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Novo curso</button></div>
+
+      <div class="ac-grid" style="margin-top:22px">
+        <div>
+          <div class="crow sel"><div class="thumb b2 mini"></div><div style="flex:1"><div style="font-weight:600;font-size:14.5px">Eletroterapia & Recursos Estéticos</div><div class="muted" style="font-size:12.5px">8 módulos · 22 aulas · R$ 397</div></div><span class="badge green dot">Publicado</span></div>
+          <div class="crow"><div class="thumb mini"></div><div style="flex:1"><div style="font-weight:600;font-size:14.5px">Skincare Avançado & Protocolos</div><div class="muted" style="font-size:12.5px">6 módulos · 18 aulas · R$ 397</div></div><span class="badge green dot">Publicado</span></div>
+          <div class="crow"><div class="thumb b4 mini"></div><div style="flex:1"><div style="font-weight:600;font-size:14.5px">Micropigmentação: Iniciante ao Avançado</div><div class="muted" style="font-size:12.5px">9 módulos · 22 aulas · R$ 497</div></div><span class="badge green dot">Publicado</span></div>
+          <div class="crow"><div class="thumb b3 mini"></div><div style="flex:1"><div style="font-weight:600;font-size:14.5px">Maquiagem Profissional Completa</div><div class="muted" style="font-size:12.5px">7 módulos · 18 aulas · R$ 497</div></div><span class="badge green dot">Publicado</span></div>
+          <div class="crow"><div class="thumb b2 mini"></div><div style="flex:1"><div style="font-weight:600;font-size:14.5px">Design de Sobrancelhas</div><div class="muted" style="font-size:12.5px">4 módulos · 12 aulas · R$ 297</div></div><span class="badge green dot">Publicado</span></div>
+          <div class="crow"><div class="thumb mini"></div><div style="flex:1"><div style="font-weight:600;font-size:14.5px">Gestão para Salões & Clínicas</div><div class="muted" style="font-size:12.5px">3 módulos · 10 aulas · R$ 297</div></div><span class="badge" style="background:#fdeede;color:#b5790f">Rascunho</span></div>
+        </div>
+
+        <!-- EDITOR -->
+        <aside class="editor">
+          <div class="card card-pad">
+            <div class="flex between aic"><h3 style="font-size:17px">Editar curso</h3><span class="badge green dot">Publicado</span></div>
+            <div class="thumb b2" style="margin-top:14px;aspect-ratio:16/8"><div style="position:absolute;inset:0;display:grid;place-items:center"><span class="btn btn-ghost btn-sm" style="background:rgba(255,255,255,.9);border:0">Trocar thumbnail</span></div></div>
+            <div class="field" style="margin-top:16px"><label>Título</label><input class="input" value="Eletroterapia & Recursos Estéticos"></div>
+            <div class="field" style="margin-top:14px"><label>Descrição</label><textarea class="input" rows="2" style="resize:vertical">Domine correntes, ultrassom e protocolos de eletrotermoterapia.</textarea></div>
+            <div class="grid g2" style="gap:12px;margin-top:14px"><div class="field"><label>Preço (R$)</label><input class="input" value="397"></div><div class="field"><label>Nível</label><select class="input"><option>Intermediário</option><option>Iniciante</option><option>Avançado</option></select></div></div>
+            <label style="font-size:13px;font-weight:600;color:var(--ink-2);display:block;margin:18px 0 8px">Módulos</label>
+            <div class="mod-edit"><span class="gr">⠿</span>Módulo 1 · Fundamentos<span class="muted" style="margin-left:auto;font-size:12px">3 aulas</span></div>
+            <div class="mod-edit"><span class="gr">⠿</span>Módulo 2 · Ultrassom estético<span class="muted" style="margin-left:auto;font-size:12px">5 aulas</span></div>
+            <div class="mod-edit"><span class="gr">⠿</span>Módulo 3 · Protocolos combinados<span class="muted" style="margin-left:auto;font-size:12px">6 aulas</span></div>
+            <button class="btn btn-soft btn-sm btn-block" style="margin-top:6px">+ Adicionar módulo</button>
+            <div class="flex gap12" style="margin-top:18px"><button class="btn btn-primary" style="flex:1">Salvar</button><button class="btn btn-ghost">Pré-visualizar</button></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

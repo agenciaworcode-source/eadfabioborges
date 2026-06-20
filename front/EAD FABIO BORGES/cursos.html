@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cursos — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  .chead{ padding:54px 0 24px; }
+  .cat-grid{ display:grid; grid-template-columns:230px 1fr; gap:36px; align-items:start; }
+  .filters{ position:sticky; top:84px; }
+  .filters h4{ font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); margin:0 0 12px; }
+  .fcat{ display:flex; flex-direction:column; gap:2px; }
+  .fcat a{ display:flex; align-items:center; justify-content:space-between; padding:9px 12px; border-radius:10px; font-size:14px; color:var(--ink-2); font-weight:500; }
+  .fcat a:hover{ background:#fff; }
+  .fcat a.on{ background:var(--blue-tint); color:var(--blue-700); }
+  .fcat a span{ font-size:12px; color:var(--faint); }
+  .grid6{ display:grid; grid-template-columns:repeat(2,1fr); gap:22px; }
+  .ccard{ background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--shadow-xs); transition:transform .18s, box-shadow .18s; display:flex; flex-direction:column; }
+  .ccard:hover{ transform:translateY(-4px); box-shadow:var(--shadow); }
+  .ccard .thumb{ border-radius:0; }
+  .ccard .body{ padding:20px; display:flex; flex-direction:column; gap:10px; flex:1; }
+  .ccard .meta{ display:flex; gap:10px; align-items:center; font-size:12.5px; color:var(--muted); }
+  .ccard h3{ font-size:18px; line-height:1.2; }
+  .ccard p{ font-size:13.5px; color:var(--muted); }
+  .ccard .foot{ display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:6px; }
+  @media (max-width:860px){ .cat-grid{ grid-template-columns:1fr; } .filters{ position:static; } .grid6{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<nav class="pubnav"><div class="wrap">
+  <a class="logo" href="home.html"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b>Fábio Borges</b><span>Mentoria Profissional em Estética</span></span></a>
+  <div class="links"><a href="home.html">Início</a><a href="cursos.html" style="color:var(--blue-600)">Cursos</a><a href="planos.html">Planos</a><a href="curso.html">Para clínicas</a></div>
+  <div class="flex aic gap12"><a class="btn btn-ghost btn-sm" href="login.html">Entrar</a><a class="btn btn-primary btn-sm" href="cadastro.html">Começar agora</a></div>
+</div></nav>
+
+<header class="chead"><div class="wrap">
+  <span class="eyebrow">Catálogo</span>
+  <h1 style="margin-top:12px;font-size:clamp(34px,5vw,48px)">Todos os cursos</h1>
+  <p class="muted" style="font-size:17px;margin-top:12px;max-width:50ch">Seis trilhas completas, da técnica à gestão. Inclusas no plano Ouro ou disponíveis avulsas.</p>
+</div></header>
+
+<section class="wrap" style="padding-bottom:60px">
+  <div class="cat-grid">
+    <aside class="filters">
+      <h4>Categorias</h4>
+      <div class="fcat">
+        <a class="on" href="#">Todos <span>6</span></a>
+        <a href="#">Estética avançada <span>2</span></a>
+        <a href="#">Micropigmentação <span>1</span></a>
+        <a href="#">Maquiagem <span>1</span></a>
+        <a href="#">Sobrancelhas <span>1</span></a>
+        <a href="#">Gestão <span>1</span></a>
+      </div>
+      <h4 style="margin-top:26px">Nível</h4>
+      <div class="fcat">
+        <a href="#">Iniciante <span>2</span></a>
+        <a href="#">Intermediário <span>2</span></a>
+        <a href="#">Avançado <span>2</span></a>
+      </div>
+      <div class="card card-pad" style="margin-top:26px;background:var(--blue-tint);border-color:#cfe6ff">
+        <div style="font-weight:600;font-size:15px">Plano Ouro</div>
+        <p class="muted" style="font-size:13px;margin:6px 0 12px">Acesse todos os 6 cursos por R$ 197/mês.</p>
+        <a class="btn btn-primary btn-sm btn-block" href="planos.html">Ver planos</a>
+      </div>
+    </aside>
+
+    <div class="grid6">
+      <!-- 1 -->
+      <a class="ccard" href="curso.html">
+        <div class="thumb b2"><svg class="cat-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
+        <div class="body"><div class="meta"><span>Intermediário</span>·<span>16h</span>·<span>★ 4,9</span></div><h3>Eletroterapia & Recursos Estéticos</h3><p>Domine correntes, ultrassom e protocolos de eletrotermoterapia na clínica.</p><div class="foot"><span class="price">R$ 397</span><span class="badge blue">Incluído no Ouro</span></div></div>
+      </a>
+      <!-- 2 -->
+      <a class="ccard" href="curso.html">
+        <div class="thumb"><svg class="cat-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2s7 7 7 12a7 7 0 1 1-14 0c0-5 7-12 7-12z"/></svg></div>
+        <div class="body"><div class="meta"><span>Avançado</span>·<span>14h</span>·<span>★ 4,8</span></div><h3>Skincare Avançado & Protocolos</h3><p>Avaliação de pele, ativos e protocolos faciais de alta performance.</p><div class="foot"><span class="price">R$ 397</span><span class="badge blue">Incluído no Ouro</span></div></div>
+      </a>
+      <!-- 3 -->
+      <a class="ccard" href="curso.html">
+        <div class="thumb b4"><svg class="cat-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18z"/><circle cx="11" cy="11" r="2"/></svg></div>
+        <div class="body"><div class="meta"><span>Avançado</span>·<span>22h</span>·<span>★ 5,0</span></div><h3>Micropigmentação: Iniciante ao Avançado</h3><p>Fios, shadow e lábios — da teoria à perfeição na agulha.</p><div class="foot"><span class="price">R$ 497</span><span class="badge">Avulso</span></div></div>
+      </a>
+      <!-- 4 -->
+      <a class="ccard" href="curso.html">
+        <div class="thumb b3"><svg class="cat-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.06 11.9 2 19l3 3 7.1-7.06M16 8l-4 4M22 2l-6 6M13 5l6 6"/></svg></div>
+        <div class="body"><div class="meta"><span>Avançado</span>·<span>18h</span>·<span>★ 4,9</span></div><h3>Maquiagem Profissional Completa</h3><p>Do social ao editorial — técnica de pele, olhos e acabamento.</p><div class="foot"><span class="price">R$ 497</span><span class="badge blue">Incluído no Ouro</span></div></div>
+      </a>
+      <!-- 5 -->
+      <a class="ccard" href="curso.html">
+        <div class="thumb b2"><svg class="cat-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="body"><div class="meta"><span>Iniciante</span>·<span>9h</span>·<span>★ 4,8</span></div><h3>Design de Sobrancelhas</h3><p>Visagismo, mapeamento e modelagem para um olhar harmônico.</p><div class="foot"><span class="price">R$ 297</span><span class="badge">Avulso</span></div></div>
+      </a>
+      <!-- 6 -->
+      <a class="ccard" href="curso.html">
+        <div class="thumb"><svg class="cat-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+        <div class="body"><div class="meta"><span>Iniciante</span>·<span>8h</span>·<span>★ 4,7</span></div><h3>Gestão para Salões & Clínicas</h3><p>Precificação, fluxo de caixa e marketing para lotar a agenda.</p><div class="foot"><span class="price">R$ 297</span><span class="badge">Avulso</span></div></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="foot"><div class="wrap"><div class="cols">
+  <div><a class="logo" href="home.html"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b>Fábio Borges</b><span>Mentoria Profissional em Estética</span></span></a><p class="muted" style="font-size:14px;margin-top:16px;max-width:34ch">Especialização em recursos eletrotermoterapêuticos e estética avançada.</p></div>
+  <div><h4>Plataforma</h4><a href="cursos.html">Cursos</a><a href="planos.html">Planos</a><a href="login.html">Entrar</a></div>
+  <div><h4>Recursos</h4><a href="certificado.html">Verificar certificado</a><a href="#">Suporte</a></div>
+  <div><h4>Contato</h4><a href="#">Instagram</a><a href="#">WhatsApp</a></div>
+</div><div class="bottom"><span>© 2026 Fábio Borges Mentoria.</span><span>Termos · Privacidade</span></div></div></footer>
+</body>
+</html>

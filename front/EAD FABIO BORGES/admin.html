@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  .chart{ display:flex; align-items:flex-end; gap:8px; height:200px; padding-top:10px; }
+  .chart .bar{ flex:1; background:linear-gradient(180deg,var(--blue),#7bbcff); border-radius:6px 6px 0 0; min-height:6px; position:relative; transition:opacity .15s; }
+  .chart .bar:hover{ opacity:.8; }
+  .chart .bar.peak{ background:linear-gradient(180deg,var(--blue-600),var(--blue)); }
+  @media (max-width:900px){ .g4{ grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side admin">
+    <div class="brand"><a class="logo" href="home.html" style="filter:brightness(0) invert(1)"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b style="color:#fff">Fábio Borges</b><span style="color:#7c828c">Admin</span></span></a></div>
+    <div class="nav-group">Gestão</div>
+    <a class="nav-link active" href="admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</a>
+    <a class="nav-link" href="admin-alunos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2"/><circle cx="17" cy="9" r="3"/><path d="M22 21v-1a5 5 0 0 0-4-4.9"/></svg>Alunos</a>
+    <a class="nav-link" href="admin-cursos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Cursos</a>
+    <a class="nav-link" href="admin-relatorios.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>Relatórios</a>
+    <div class="nav-group">Plataforma</div>
+    <a class="nav-link" href="home.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Ver site</a>
+    <div class="user"><div class="avatar" style="background:var(--blue)">FB</div><div style="min-width:0"><div style="font-weight:600;font-size:13.5px">Fábio Borges</div><div style="font-size:11.5px;color:#9ca3ae">Administrador</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar"><div class="crumb"><b>Painel administrativo</b></div><div class="flex aic gap16"><span class="muted" style="font-size:13px">Junho 2026</span><div class="avatar sm" style="background:var(--ink)">FB</div></div></div>
+    <div class="content wide">
+      <h1 style="font-size:26px">Visão geral</h1>
+
+      <div class="grid g4" style="margin-top:20px">
+        <div class="stat"><div class="lbl">Total de alunos</div><div class="num">3.482</div><div class="delta up">+128 este mês</div></div>
+        <div class="stat"><div class="lbl">Receita (mês)</div><div class="num">R$ 184k</div><div class="delta up">+12,4%</div></div>
+        <div class="stat"><div class="lbl">Taxa de conclusão</div><div class="num">68%</div><div class="delta up">+3,1%</div></div>
+        <div class="stat"><div class="lbl">Certificados emitidos</div><div class="num">1.246</div><div class="delta up">+94 este mês</div></div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:1.5fr 1fr;margin-top:24px">
+        <div class="card card-pad">
+          <div class="flex between aic"><div><h3 style="font-size:17px">Novas matrículas</h3><p class="muted" style="font-size:13px">Últimos 30 dias</p></div><span class="badge green dot">+18%</span></div>
+          <div class="chart">
+            <div class="bar" style="height:38%"></div><div class="bar" style="height:52%"></div><div class="bar" style="height:44%"></div><div class="bar" style="height:61%"></div><div class="bar" style="height:55%"></div><div class="bar" style="height:72%"></div><div class="bar peak" style="height:88%"></div><div class="bar" style="height:67%"></div><div class="bar" style="height:74%"></div><div class="bar" style="height:59%"></div><div class="bar" style="height:81%"></div><div class="bar peak" style="height:95%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:64%"></div>
+          </div>
+          <div class="flex between" style="font-size:12px;color:var(--faint);margin-top:8px"><span>1 jun</span><span>15 jun</span><span>30 jun</span></div>
+        </div>
+
+        <div class="card card-pad">
+          <h3 style="font-size:17px">Alunos por plano</h3>
+          <div class="col gap16" style="margin-top:18px">
+            <div><div class="flex between" style="font-size:13.5px;margin-bottom:6px"><span>Free</span><b>1.420</b></div><div class="progress"><span style="width:41%;background:var(--faint)"></span></div></div>
+            <div><div class="flex between" style="font-size:13.5px;margin-bottom:6px"><span>Prata</span><b>842</b></div><div class="progress"><span style="width:24%;background:#9aa3ad"></span></div></div>
+            <div><div class="flex between" style="font-size:13.5px;margin-bottom:6px"><span>Ouro</span><b>968</b></div><div class="progress"><span style="width:28%"></span></div></div>
+            <div><div class="flex between" style="font-size:13.5px;margin-bottom:6px"><span>Diamante</span><b>252</b></div><div class="progress"><span style="width:7%;background:var(--ink)"></span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <div class="flex between aic" style="padding:20px 22px 14px"><h3 style="font-size:17px">Últimos pagamentos</h3><a href="admin-relatorios.html" class="blue" style="font-size:13.5px;font-weight:600">Ver relatórios →</a></div>
+        <table class="tbl">
+          <thead><tr><th>Aluno</th><th>Plano / Curso</th><th>Valor</th><th>Data</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><div class="flex aic gap12"><div class="avatar sm">CM</div>Carla Mendes</div></td><td>Plano Ouro</td><td>R$ 197,00</td><td>Hoje, 14:20</td><td><span class="badge green dot">Aprovado</span></td></tr>
+            <tr><td><div class="flex aic gap12"><div class="avatar sm" style="background:#2bbf6a">RA</div>Renata Alves</div></td><td>Micropigmentação (avulso)</td><td>R$ 497,00</td><td>Hoje, 11:02</td><td><span class="badge green dot">Aprovado</span></td></tr>
+            <tr><td><div class="flex aic gap12"><div class="avatar sm" style="background:var(--ink)">JS</div>Juliana Souza</div></td><td>Plano Diamante</td><td>R$ 397,00</td><td>Ontem, 19:45</td><td><span class="badge green dot">Aprovado</span></td></tr>
+            <tr><td><div class="flex aic gap12"><div class="avatar sm" style="background:#f0a52b">PL</div>Paula Lima</div></td><td>Plano Prata</td><td>R$ 97,00</td><td>Ontem, 09:30</td><td><span class="badge" style="background:#fdeede;color:#b5790f">Pendente</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

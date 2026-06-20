@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curso — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  .ch-grid{ display:grid; grid-template-columns:1fr 300px; gap:36px; align-items:start; }
+  .mod{ border:1px solid var(--line); border-radius:var(--r); margin-bottom:12px; overflow:hidden; background:#fff; }
+  .mod summary{ list-style:none; cursor:pointer; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; font-weight:600; }
+  .mod summary::-webkit-details-marker{ display:none; }
+  .lesson{ display:flex; align-items:center; gap:13px; padding:13px 18px; font-size:14.5px; color:var(--ink-2); border-top:1px solid var(--line); }
+  .lesson .ic{ width:28px; height:28px; border-radius:50%; display:grid; place-items:center; flex:none; }
+  .lesson .ic.done{ background:var(--green-tint); color:#178a4a; }
+  .lesson .ic.play{ background:var(--blue-tint); color:var(--blue-600); }
+  .lesson .ic.lock{ background:#f0f0f2; color:var(--faint); }
+  .lesson.locked{ color:var(--faint); }
+  .lesson .dur{ margin-left:auto; color:var(--faint); font-size:13px; }
+  .mod[open] summary .chev{ transform:rotate(180deg); }
+  .chev{ transition:transform .2s; color:var(--faint); }
+  .gatebox{ position:relative; }
+  .gate-banner{ display:flex; gap:14px; align-items:center; background:#fafafa; border:1px dashed var(--line-2); border-radius:var(--r); padding:16px 18px; margin:12px 0; }
+  .gate-banner .lk{ width:38px; height:38px; border-radius:10px; background:var(--ink); color:#fff; display:grid; place-items:center; flex:none; }
+  .side-card{ position:sticky; top:20px; }
+  @media (max-width:900px){ .ch-grid{ grid-template-columns:1fr; } .side-card{ position:static; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><a class="logo" href="home.html"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b>Fábio Borges</b><span>Mentoria</span></span></a></div>
+    <div class="nav-group">Menu</div>
+    <a class="nav-link" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>Visão geral</a>
+    <a class="nav-link active" href="meus-cursos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Meus cursos</a>
+    <a class="nav-link" href="certificados.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5"/></svg>Certificados</a>
+    <div class="nav-group">Conta</div>
+    <a class="nav-link" href="meu-plano.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Meu plano</a>
+    <a class="nav-link" href="perfil.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Perfil</a>
+    <a class="nav-link" href="cursos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Explorar cursos</a>
+    <div class="user"><div class="avatar">MS</div><div style="min-width:0"><div style="font-weight:600;font-size:13.5px">Maria Silva</div><div class="plan-badge plan-ouro" style="margin-top:3px;padding:2px 8px;font-size:10.5px">Ouro</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb"><a href="meus-cursos.html">Meus cursos</a> <span>›</span> <b>Eletroterapia & Recursos Estéticos</b></div>
+      <div class="avatar sm">MS</div>
+    </div>
+
+    <div class="content wide">
+      <div class="ch-grid">
+        <div>
+          <span class="badge blue">Estética avançada · Intermediário</span>
+          <h1 style="font-size:28px;margin:12px 0 8px">Eletroterapia & Recursos Estéticos</h1>
+          <p class="muted" style="max-width:60ch">8 módulos · 22 aulas · 16h. Domine correntes, ultrassom e protocolos combinados aplicados na clínica.</p>
+
+          <h3 style="margin:30px 0 14px;font-size:18px">Conteúdo do curso</h3>
+
+          <details class="mod" open>
+            <summary>Módulo 1 · Fundamentos <span class="flex aic gap12"><span class="badge green" style="padding:2px 9px">Concluído</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+            <a class="lesson" href="player.html"><span class="ic done"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>Introdução & boas-vindas<span class="dur">8 min</span></a>
+            <a class="lesson" href="player.html"><span class="ic done"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>Princípios das correntes<span class="dur">22 min</span></a>
+            <a class="lesson" href="player.html"><span class="ic done"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>Equipamentos essenciais<span class="dur">31 min</span></a>
+          </details>
+
+          <details class="mod" open>
+            <summary>Módulo 2 · Ultrassom estético <span class="flex aic gap12"><span class="badge blue" style="padding:2px 9px">Em andamento</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+            <a class="lesson" href="player.html"><span class="ic done"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>Parâmetros e dosagem<span class="dur">26 min</span></a>
+            <a class="lesson" href="player.html" style="background:var(--blue-tint2)"><span class="ic play"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b style="color:var(--blue-700)">Protocolo facial passo a passo</b><span class="dur">38 min</span></a>
+            <div class="lesson"><span class="ic play"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Erros comuns e como evitar<span class="dur">19 min</span></div>
+          </details>
+
+          <!-- LOCKED MODULE — AccessGate -->
+          <details class="mod">
+            <summary>Módulo 3 · Protocolos combinados <span class="flex aic gap12"><span class="badge" style="padding:2px 9px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Bloqueado</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+            <div class="lesson locked"><span class="ic lock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Montando um pacote de tratamento<span class="dur">34 min</span></div>
+            <div class="gate-banner">
+              <div class="lk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+              <div style="flex:1"><div style="font-weight:600;font-size:14px">Disponível no plano Diamante</div><div class="muted" style="font-size:13px">Faça upgrade para desbloquear protocolos avançados e mentoria ao vivo.</div></div>
+              <a class="btn btn-primary btn-sm" href="meu-plano.html">Fazer upgrade</a>
+            </div>
+          </details>
+        </div>
+
+        <!-- PROGRESS PANEL -->
+        <aside class="side-card">
+          <div class="card card-pad center">
+            <div class="ring" style="--val:64;--size:128px;margin:0 auto"><div><div style="font-size:28px;font-weight:600;letter-spacing:-.03em">64%</div><div class="muted" style="font-size:12px">concluído</div></div></div>
+            <p class="muted" style="font-size:13.5px;margin:16px 0 4px">14 de 22 aulas concluídas</p>
+            <a class="btn btn-primary btn-block" href="player.html" style="margin-top:12px">Continuar curso</a>
+            <hr class="soft-divider" style="margin:18px 0">
+            <div class="col gap12" style="text-align:left">
+              <div class="flex between"><span class="muted" style="font-size:13px">Duração</span><b style="font-size:13px">16h total</b></div>
+              <div class="flex between"><span class="muted" style="font-size:13px">Nível</span><b style="font-size:13px">Intermediário</b></div>
+              <div class="flex between"><span class="muted" style="font-size:13px">Certificado</span><b style="font-size:13px">Ao concluir</b></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

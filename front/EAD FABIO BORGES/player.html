@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aula — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  body{ background:#0c0d10; }
+  .pl-top{ height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 22px; border-bottom:1px solid #1c1e24; background:#0f1014; color:#fff; position:sticky; top:0; z-index:20; }
+  .pl-top a.back{ color:#aeb4be; font-size:14px; display:flex; gap:8px; align-items:center; }
+  .pl-grid{ display:grid; grid-template-columns:1fr 360px; min-height:calc(100vh - 60px); }
+  .pl-main{ padding:0; }
+  .video{ aspect-ratio:16/9; background:radial-gradient(120% 120% at 50% 40%,#1b2740,#0a0e16); display:grid; place-items:center; position:relative; }
+  .video .play{ width:78px; height:78px; border-radius:50%; background:rgba(255,255,255,.95); display:grid; place-items:center; color:#0c0d10; box-shadow:0 8px 40px rgba(0,0,0,.5); }
+  .video .vbar{ position:absolute; left:0; right:0; bottom:0; padding:16px 20px; display:flex; align-items:center; gap:14px; background:linear-gradient(transparent,rgba(0,0,0,.6)); color:#fff; }
+  .video .vbar .track{ flex:1; height:5px; background:rgba(255,255,255,.25); border-radius:980px; overflow:hidden; }
+  .video .vbar .track span{ display:block; height:100%; width:42%; background:var(--blue); }
+  .pl-body{ background:var(--bg); padding:26px 30px; }
+  .pl-body .lesson-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:20px; }
+  .tabs2{ display:flex; gap:26px; border-bottom:1px solid var(--line); margin:22px 0 0; }
+  .tabs2 button{ background:none; border:0; padding:12px 0; font-size:14.5px; font-weight:600; color:var(--muted); border-bottom:2px solid transparent; }
+  .tabs2 button.on{ color:var(--ink); border-color:var(--blue); }
+  .tpane{ display:none; padding:22px 0; }
+  .tpane.on{ display:block; }
+  .matrow{ display:flex; align-items:center; gap:14px; padding:14px 16px; background:#fff; border:1px solid var(--line); border-radius:var(--r); margin-bottom:10px; }
+  .matrow .fi{ width:38px; height:38px; border-radius:9px; background:var(--blue-tint); color:var(--blue-600); display:grid; place-items:center; flex:none; }
+  .quizq{ background:#fff; border:1px solid var(--line); border-radius:var(--r); padding:20px; }
+  .opt{ display:flex; align-items:center; gap:12px; padding:13px 15px; border:1px solid var(--line-2); border-radius:11px; margin-top:10px; font-size:14.5px; cursor:pointer; }
+  .opt:hover{ border-color:var(--blue); background:var(--blue-tint2); }
+  .opt .rd{ width:18px; height:18px; border-radius:50%; border:2px solid var(--line-2); flex:none; }
+  /* lesson rail */
+  .rail{ background:#0f1014; border-left:1px solid #1c1e24; color:#e7e9ee; overflow-y:auto; max-height:calc(100vh - 60px); }
+  .rail .rh{ padding:18px 20px; border-bottom:1px solid #1c1e24; }
+  .rail .rmod{ padding:14px 20px 6px; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:#6a707a; }
+  .rl{ display:flex; align-items:center; gap:12px; padding:11px 20px; font-size:13.5px; color:#aeb4be; cursor:pointer; }
+  .rl:hover{ background:#16181d; }
+  .rl.on{ background:#16181d; color:#fff; border-left:2px solid var(--blue); }
+  .rl .ic{ width:24px; height:24px; border-radius:50%; display:grid; place-items:center; flex:none; }
+  .rl .ic.done{ background:rgba(43,191,106,.18); color:#3fd17f; }
+  .rl .ic.play{ background:rgba(72,161,254,.2); color:var(--blue); }
+  .rl .ic.lock{ background:#1d2026; color:#6a707a; }
+  .rl .dur{ margin-left:auto; color:#6a707a; font-size:12px; }
+  @media (max-width:900px){ .pl-grid{ grid-template-columns:1fr; } .rail{ max-height:none; } }
+</style>
+</head>
+<body>
+<div class="pl-top">
+  <a class="back" href="curso-aluno.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>Eletroterapia & Recursos Estéticos</a>
+  <div class="flex aic gap16"><span style="color:#6a707a;font-size:13px">Aula 5 de 22</span><div class="avatar sm">MS</div></div>
+</div>
+
+<div class="pl-grid">
+  <!-- MAIN -->
+  <div class="pl-main">
+    <div class="video">
+      <div class="play"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+      <div class="vbar"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span style="font-size:13px">14:22</span><div class="track"><span></span></div><span style="font-size:13px">38:00</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div>
+    </div>
+
+    <div class="pl-body">
+      <div class="lesson-head">
+        <div>
+          <span class="badge blue">Módulo 2 · Ultrassom estético</span>
+          <h1 style="font-size:24px;margin-top:10px">Protocolo facial passo a passo</h1>
+        </div>
+        <button class="btn btn-primary" style="flex:none"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Marcar como concluída</button>
+      </div>
+
+      <div class="tabs2">
+        <button class="on" onclick="ptab(0,this)">Descrição</button>
+        <button onclick="ptab(1,this)">Materiais</button>
+        <button onclick="ptab(2,this)">Quiz</button>
+      </div>
+
+      <div class="tpane on">
+        <p style="font-size:15.5px;color:var(--ink-2);line-height:1.65;max-width:68ch">Nesta aula você acompanha um protocolo facial completo com ultrassom estético, do preparo da pele à finalização. Fábio demonstra os parâmetros ideais, o tempo de aplicação por região e como adaptar a intensidade para cada tipo de pele.</p>
+        <div class="card card-pad" style="margin-top:18px;max-width:68ch"><b style="font-size:14px">Nesta aula:</b><ul style="margin:10px 0 0;padding-left:18px;color:var(--ink-2);font-size:14.5px;line-height:1.9"><li>Preparo e higienização da pele</li><li>Definição de parâmetros por região</li><li>Aplicação demonstrada passo a passo</li><li>Cuidados pós-protocolo</li></ul></div>
+      </div>
+
+      <div class="tpane">
+        <div class="matrow"><div class="fi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div><div style="flex:1"><div style="font-weight:600;font-size:14px">Ficha de parâmetros — Ultrassom.pdf</div><div class="muted" style="font-size:12.5px">PDF · 1,2 MB</div></div><button class="btn btn-soft btn-sm">Baixar</button></div>
+        <div class="matrow"><div class="fi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div><div style="flex:1"><div style="font-weight:600;font-size:14px">Checklist de anamnese.pdf</div><div class="muted" style="font-size:12.5px">PDF · 480 KB</div></div><button class="btn btn-soft btn-sm">Baixar</button></div>
+      </div>
+
+      <div class="tpane">
+        <div class="quizq">
+          <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Pergunta 1 de 3</div>
+          <h3 style="font-size:17px;margin:8px 0 6px">Qual o parâmetro mais indicado para flacidez facial leve?</h3>
+          <label class="opt"><span class="rd"></span>1 MHz contínuo</label>
+          <label class="opt"><span class="rd"></span>3 MHz pulsado</label>
+          <label class="opt"><span class="rd"></span>3 MHz contínuo</label>
+          <button class="btn btn-primary btn-sm" style="margin-top:16px">Responder</button>
+        </div>
+      </div>
+
+      <div class="flex between" style="margin-top:24px;padding-top:22px;border-top:1px solid var(--line)">
+        <button class="btn btn-ghost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>Aula anterior</button>
+        <button class="btn btn-dark">Próxima aula<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAIL -->
+  <aside class="rail">
+    <div class="rh"><div style="font-weight:600;font-size:14px">Conteúdo do curso</div><div style="color:#6a707a;font-size:12.5px;margin-top:3px">14 / 22 aulas · 64%</div><div class="progress" style="margin-top:10px;background:#1d2026"><span style="width:64%"></span></div></div>
+    <div class="rmod">Módulo 1 · Fundamentos</div>
+    <div class="rl"><span class="ic done"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>Introdução & boas-vindas<span class="dur">8m</span></div>
+    <div class="rl"><span class="ic done"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>Princípios das correntes<span class="dur">22m</span></div>
+    <div class="rmod">Módulo 2 · Ultrassom estético</div>
+    <div class="rl"><span class="ic done"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>Parâmetros e dosagem<span class="dur">26m</span></div>
+    <div class="rl on"><span class="ic play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Protocolo facial passo a passo<span class="dur">38m</span></div>
+    <div class="rl"><span class="ic play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>Erros comuns e como evitar<span class="dur">19m</span></div>
+    <div class="rmod">Módulo 3 · Protocolos combinados</div>
+    <div class="rl"><span class="ic lock"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Montando um pacote<span class="dur">34m</span></div>
+    <div class="rl"><span class="ic lock"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Casos clínicos reais<span class="dur">41m</span></div>
+  </aside>
+</div>
+<script>
+  function ptab(i,el){
+    document.querySelectorAll('.tabs2 button').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    document.querySelectorAll('.tpane').forEach((p,j)=>p.classList.toggle('on',i===j));
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pagamento aprovado — Mentoria Fábio Borges</title>
+<link rel="stylesheet" href="assets/mb.css">
+<style>
+  body{ min-height:100vh; display:grid; place-items:center; padding:24px; background:radial-gradient(120% 80% at 50% 0%,#eaf4ff,var(--bg) 60%); }
+  .sc{ width:100%; max-width:480px; text-align:center; }
+  .check{ width:92px; height:92px; border-radius:50%; background:var(--blue); display:grid; place-items:center; margin:0 auto 24px; color:#fff; box-shadow:var(--shadow-blue); animation:pop .5s cubic-bezier(.2,1.4,.4,1) both; }
+  .check svg{ animation:draw .5s .25s both; }
+  @keyframes pop{ from{ transform:scale(.4); opacity:0 } }
+  @keyframes draw{ from{ stroke-dasharray:40; stroke-dashoffset:40 } to{ stroke-dashoffset:0 } }
+  .summary{ background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); padding:22px; text-align:left; margin:26px 0; box-shadow:var(--shadow-sm); }
+  .srow{ display:flex; justify-content:space-between; align-items:center; padding:11px 0; font-size:14.5px; }
+  .srow + .srow{ border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="sc">
+  <a class="logo" href="home.html" style="justify-content:center;margin-bottom:30px"><img src="assets/mb-logo.png" alt="MB"><span class="lk"><b>Fábio Borges</b><span>Mentoria Profissional em Estética</span></span></a>
+
+  <div class="check"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+  <h1 style="font-size:32px">Acesso liberado! 🎉</h1>
+  <p class="muted" style="font-size:17px;margin-top:12px">Seu pagamento foi aprovado. Tudo pronto para começar a estudar.</p>
+
+  <div class="summary">
+    <div class="srow"><span class="muted">Item</span><b>Plano Ouro — mensal</b></div>
+    <div class="srow"><span class="muted">Valor</span><b>R$ 197,00</b></div>
+    <div class="srow"><span class="muted">Pagamento</span><span class="badge green dot">Aprovado</span></div>
+    <div class="srow"><span class="muted">Renovação</span><span>15 jul 2026</span></div>
+  </div>
+
+  <div class="flex gap12" style="justify-content:center"><a class="btn btn-primary btn-lg" href="dashboard.html">Ir para o curso</a><a class="btn btn-ghost btn-lg" href="dashboard.html">Ver meu dashboard</a></div>
+  <p class="muted" style="font-size:13px;margin-top:22px">Enviamos a confirmação para o seu e-mail. Precisa de ajuda? <a href="#" class="blue" style="font-weight:600">Fale com o suporte</a></p>
+</div>
+</body>
+</html>
