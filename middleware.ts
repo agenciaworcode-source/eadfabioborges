@@ -61,6 +61,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  const isDashboard = pathname.startsWith('/dashboard')
+  const isAdmin = pathname.startsWith('/admin')
+
+  // Resolução de sessão só é necessária para /dashboard e /admin. As demais
+  // rotas do matcher (checkout, webhooks, auth) estão aqui apenas para rate
+  // limiting — chamar getUser() nelas seria uma ida de rede ao Supabase à toa
+  // (crítico em webhooks server-to-server, que não têm sessão).
+  if (!isDashboard && !isAdmin) {
+    return supabaseResponse
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -83,9 +94,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
-  const isDashboard = pathname.startsWith('/dashboard')
-  const isAdmin = pathname.startsWith('/admin')
 
   if ((isDashboard || isAdmin) && !user) {
     const loginUrl = new URL('/auth/login', request.url)

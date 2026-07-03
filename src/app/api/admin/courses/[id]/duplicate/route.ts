@@ -15,14 +15,14 @@ function buildSlug(title: string): string {
 
 async function generateUniqueSlug(supabase: SupabaseClient, baseSlug: string): Promise<string> {
   let slug = baseSlug
-  let suffix = 1
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
+  // Teto de tentativas para evitar loop infinito em caso de anomalia de dados
+  for (let suffix = 1; suffix <= 50; suffix++) {
     const { data } = await supabase.from('courses').select('id').eq('slug', slug).maybeSingle()
     if (!data) return slug
-    suffix++
-    slug = `${baseSlug}-${suffix}`
+    slug = `${baseSlug}-${suffix + 1}`
   }
+  // Fallback garantido: sufixo aleatório
+  return `${baseSlug}-${Date.now().toString(36)}`
 }
 
 interface CourseRow {

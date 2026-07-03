@@ -27,23 +27,16 @@ function buildSlug(title: string): string {
     .replace(/^-|-$/g, '')
 }
 
-async function generateUniqueSlug(
-  supabase: SupabaseClient,
-  baseSlug: string
-): Promise<string> {
+async function generateUniqueSlug(supabase: SupabaseClient, baseSlug: string): Promise<string> {
   let slug = baseSlug
-  let suffix = 1
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const { data } = await supabase
-      .from('courses')
-      .select('id')
-      .eq('slug', slug)
-      .maybeSingle()
+  // Teto de tentativas para evitar loop infinito em caso de anomalia de dados
+  for (let suffix = 1; suffix <= 50; suffix++) {
+    const { data } = await supabase.from('courses').select('id').eq('slug', slug).maybeSingle()
     if (!data) return slug
-    suffix++
-    slug = `${baseSlug}-${suffix}`
+    slug = `${baseSlug}-${suffix + 1}`
   }
+  // Fallback garantido: sufixo aleatório
+  return `${baseSlug}-${Date.now().toString(36)}`
 }
 
 export async function POST(request: Request) {
@@ -114,15 +107,14 @@ export async function POST(request: Request) {
       certificate_enabled: certificateEnabled ?? true,
       access_days: accessDays ?? null,
     } as never)
-    .select('id, slug, title, description, price, published, is_vip, thumbnail_url, level, category, access_type, certificate_enabled, access_days')
+    .select(
+      'id, slug, title, description, price, published, is_vip, thumbnail_url, level, category, access_type, certificate_enabled, access_days'
+    )
     .single()
 
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 500 })
   }
 
-  return NextResponse.json(
-    { courseId, slug, course: courseData },
-    { status: 201 },
-  )
+  return NextResponse.json({ courseId, slug, course: courseData }, { status: 201 })
 }
