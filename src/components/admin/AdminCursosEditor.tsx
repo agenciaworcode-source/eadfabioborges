@@ -82,7 +82,9 @@ function formatDuration(secs: number): string {
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
   }).format(new Date(iso))
 }
 
@@ -98,7 +100,9 @@ export function AdminCursosEditor({
   const [mounted, setMounted] = useState(false)
   const [courses, setCourses] = useState<CourseRow[]>(initialCourses)
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedCourse?.id ?? null)
-  const [courseModules, setCourseModules] = useState<ModuleRow[]>(initialSelectedCourse?.modules ?? [])
+  const [courseModules, setCourseModules] = useState<ModuleRow[]>(
+    initialSelectedCourse?.modules ?? []
+  )
   const [activeTab, setActiveTab] = useState<Tab>('conteudo')
 
   // Filtros da listagem
@@ -120,12 +124,25 @@ export function AdminCursosEditor({
           certificate_enabled: first.certificate_enabled ?? true,
           access_days: first.access_days != null ? String(first.access_days) : '',
         }
-      : { title: '', description: '', price: '0', published: false, is_vip: false, level: 'todos', category: '', access_type: 'paid' as const, certificate_enabled: true, access_days: '' }
+      : {
+          title: '',
+          description: '',
+          price: '0',
+          published: false,
+          is_vip: false,
+          level: 'todos',
+          category: '',
+          access_type: 'paid' as const,
+          certificate_enabled: true,
+          access_days: '',
+        }
   })
 
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
-  const [thumbUrl, setThumbUrl] = useState<string | null>(initialSelectedCourse?.thumbnail_url ?? null)
+  const [thumbUrl, setThumbUrl] = useState<string | null>(
+    initialSelectedCourse?.thumbnail_url ?? null
+  )
   const [thumbMsg, setThumbMsg] = useState('')
   const [uploadingThumb, setUploadingThumb] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -194,39 +211,41 @@ export function AdminCursosEditor({
     setStats(cached?.stats ?? null)
   }
 
-  const loadEnrollments = useCallback(async (courseId: string) => {
-    const cached = courseEnrollmentCache[courseId]
-    if (cached) {
-      setEnrollments(cached.enrollments)
-      setStats(cached.stats)
-      return
-    }
-
-    setEnrollLoading(true)
-    try {
-      const res = await fetch(`/api/admin/courses/${courseId}/enrollments`)
-      const data = await res.json() as { enrollments?: EnrollmentEntry[]; error?: string }
-      if (res.ok) {
-        const nextEnrollments = data.enrollments ?? []
-        setEnrollments(nextEnrollments)
-        const total = nextEnrollments.length
-        const concluded = nextEnrollments.filter((e) => e.status === 'completed').length
-        const avgProgress = total > 0
-          ? Math.round(nextEnrollments.reduce((s, e) => s + e.progress, 0) / total)
-          : 0
-        const nextStats = { total, concluded, avgProgress, totalCompletions: concluded }
-        setStats(nextStats)
-        setCourseEnrollmentCache((prev) => ({
-          ...prev,
-          [courseId]: { enrollments: nextEnrollments, stats: nextStats },
-        }))
+  const loadEnrollments = useCallback(
+    async (courseId: string) => {
+      const cached = courseEnrollmentCache[courseId]
+      if (cached) {
+        setEnrollments(cached.enrollments)
+        setStats(cached.stats)
+        return
       }
-    } catch {
-      // silently fail
-    } finally {
-      setEnrollLoading(false)
-    }
-  }, [courseEnrollmentCache])
+
+      setEnrollLoading(true)
+      try {
+        const res = await fetch(`/api/admin/courses/${courseId}/enrollments`)
+        const data = (await res.json()) as { enrollments?: EnrollmentEntry[]; error?: string }
+        if (res.ok) {
+          const nextEnrollments = data.enrollments ?? []
+          setEnrollments(nextEnrollments)
+          const total = nextEnrollments.length
+          const concluded = nextEnrollments.filter((e) => e.status === 'completed').length
+          const avgProgress =
+            total > 0 ? Math.round(nextEnrollments.reduce((s, e) => s + e.progress, 0) / total) : 0
+          const nextStats = { total, concluded, avgProgress, totalCompletions: concluded }
+          setStats(nextStats)
+          setCourseEnrollmentCache((prev) => ({
+            ...prev,
+            [courseId]: { enrollments: nextEnrollments, stats: nextStats },
+          }))
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setEnrollLoading(false)
+      }
+    },
+    [courseEnrollmentCache]
+  )
 
   useEffect(() => {
     if (!selectedId) return
@@ -250,7 +269,9 @@ export function AdminCursosEditor({
           })
           setCourses((prev) =>
             prev.map((c) =>
-              c.id === selectedId ? { ...c, enrollmentCount: Math.max(0, c.enrollmentCount - 1) } : c
+              c.id === selectedId
+                ? { ...c, enrollmentCount: Math.max(0, c.enrollmentCount - 1) }
+                : c
             )
           )
         }
@@ -270,14 +291,19 @@ export function AdminCursosEditor({
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res = await fetch(`/api/admin/courses/${selectedId}/thumbnail`, { method: 'POST', body: fd })
-      const data = await res.json() as { thumbnailUrl?: string; error?: string }
+      const res = await fetch(`/api/admin/courses/${selectedId}/thumbnail`, {
+        method: 'POST',
+        body: fd,
+      })
+      const data = (await res.json()) as { thumbnailUrl?: string; error?: string }
       if (!res.ok) {
         setThumbMsg(`Erro: ${data.error ?? 'falha ao enviar'}`)
       } else {
         setThumbUrl(data.thumbnailUrl ?? null)
         setThumbMsg('Thumbnail atualizado!')
-        setCourses((prev) => prev.map((c) => c.id === selectedId ? { ...c, thumbnail_url: data.thumbnailUrl } : c))
+        setCourses((prev) =>
+          prev.map((c) => (c.id === selectedId ? { ...c, thumbnail_url: data.thumbnailUrl } : c))
+        )
       }
     } catch {
       setThumbMsg('Erro de conexão.')
@@ -292,16 +318,16 @@ export function AdminCursosEditor({
     setSaving(true)
     setSaveMsg('')
     try {
-      const accessDaysValue = form.access_days === '' || form.access_days === '0'
-        ? null
-        : parseInt(form.access_days, 10)
+      const accessDaysValue =
+        form.access_days === '' || form.access_days === '0' ? null : parseInt(form.access_days, 10)
       const res = await fetch(`/api/admin/courses/${selectedId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: form.title,
           description: form.description,
-          price: form.access_type === 'paid' ? (parseFloat(form.price) || 0) : (parseFloat(form.price) || 0),
+          price:
+            form.access_type === 'paid' ? parseFloat(form.price) || 0 : parseFloat(form.price) || 0,
           published: form.published,
           is_vip: form.is_vip,
           level: form.level,
@@ -311,7 +337,19 @@ export function AdminCursosEditor({
           access_days: accessDaysValue,
         }),
       })
-      const data = await res.json() as { error?: string; title?: string; description?: string; price?: number; published?: boolean; is_vip?: boolean; level?: string; category?: string; access_type?: 'free' | 'paid' | 'plan' | 'manual'; certificate_enabled?: boolean; access_days?: number | null }
+      const data = (await res.json()) as {
+        error?: string
+        title?: string
+        description?: string
+        price?: number
+        published?: boolean
+        is_vip?: boolean
+        level?: string
+        category?: string
+        access_type?: 'free' | 'paid' | 'plan' | 'manual'
+        certificate_enabled?: boolean
+        access_days?: number | null
+      }
       if (!res.ok) {
         setSaveMsg(`Erro: ${data.error ?? 'falha ao salvar'}`)
       } else {
@@ -319,7 +357,19 @@ export function AdminCursosEditor({
         setCourses((prev) =>
           prev.map((c) =>
             c.id === selectedId
-              ? { ...c, title: data.title ?? c.title, description: data.description ?? c.description, price: data.price ?? c.price, published: data.published ?? c.published, is_vip: data.is_vip ?? c.is_vip, level: data.level ?? c.level, category: data.category ?? c.category, access_type: data.access_type ?? c.access_type, certificate_enabled: data.certificate_enabled ?? c.certificate_enabled, access_days: data.access_days !== undefined ? data.access_days : c.access_days }
+              ? {
+                  ...c,
+                  title: data.title ?? c.title,
+                  description: data.description ?? c.description,
+                  price: data.price ?? c.price,
+                  published: data.published ?? c.published,
+                  is_vip: data.is_vip ?? c.is_vip,
+                  level: data.level ?? c.level,
+                  category: data.category ?? c.category,
+                  access_type: data.access_type ?? c.access_type,
+                  certificate_enabled: data.certificate_enabled ?? c.certificate_enabled,
+                  access_days: data.access_days !== undefined ? data.access_days : c.access_days,
+                }
               : c
           )
         )
@@ -341,15 +391,15 @@ export function AdminCursosEditor({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ published: true }),
       })
-      const data = await res.json() as { error?: string; published?: boolean }
+      const data = (await res.json()) as { error?: string; published?: boolean }
       if (!res.ok) {
         setSaveMsg(`Erro: ${data.error ?? 'falha ao publicar'}`)
         return
       }
       setForm((prev) => ({ ...prev, published: true }))
-      setCourses((prev) => prev.map((course) =>
-        course.id === selectedId ? { ...course, published: true } : course
-      ))
+      setCourses((prev) =>
+        prev.map((course) => (course.id === selectedId ? { ...course, published: true } : course))
+      )
       setSaveMsg('Curso publicado!')
     } catch {
       setSaveMsg('Erro de conexao.')
@@ -367,11 +417,22 @@ export function AdminCursosEditor({
       const res = await fetch('/api/admin/courses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTitle, description: newDesc, price: parseFloat(newPrice) || 0, published: newPublished, isVip: newIsVip, level: newLevel, category: newCategory }),
+        body: JSON.stringify({
+          title: newTitle,
+          description: newDesc,
+          price: parseFloat(newPrice) || 0,
+          published: newPublished,
+          isVip: newIsVip,
+          level: newLevel,
+          category: newCategory,
+        }),
       })
-      const data = await res.json() as {
+      const data = (await res.json()) as {
         error?: string
-        course?: Omit<CourseRow, 'moduleCount' | 'lessonCount' | 'enrollmentCount' | 'totalDurationSecs' | 'modules'>
+        course?: Omit<
+          CourseRow,
+          'moduleCount' | 'lessonCount' | 'enrollmentCount' | 'totalDurationSecs' | 'modules'
+        >
       }
       if (!res.ok) {
         setCreateMsg(`Erro: ${data.error ?? 'falha ao criar'}`)
@@ -399,7 +460,14 @@ export function AdminCursosEditor({
         selectCourse(createdCourse)
         setShowNewForm(false)
         setCreateMsg('Curso criado!')
-        setNewTitle(''); setNewDesc(''); setNewPrice(''); setNewIsVip(false); setNewPublished(true); setNewLevel('todos'); setNewCategory(''); setNewCourseStep('basico')
+        setNewTitle('')
+        setNewDesc('')
+        setNewPrice('')
+        setNewIsVip(false)
+        setNewPublished(true)
+        setNewLevel('todos')
+        setNewCategory('')
+        setNewCourseStep('basico')
       }
     } catch {
       setCreateMsg('Erro de conexão.')
@@ -419,9 +487,12 @@ export function AdminCursosEditor({
         setCourses(remaining)
         const next = remaining[0] ?? null
         if (next) selectCourse(next)
-        else { setSelectedId(null); setCourseModules([]) }
+        else {
+          setSelectedId(null)
+          setCourseModules([])
+        }
       } else {
-        const data = await res.json() as { error?: string }
+        const data = (await res.json()) as { error?: string }
         setSaveMsg(`Erro ao excluir: ${data.error ?? 'falha'}`)
       }
     } catch {
@@ -436,7 +507,7 @@ export function AdminCursosEditor({
     setDuplicating(true)
     try {
       const res = await fetch(`/api/admin/courses/${selectedId}/duplicate`, { method: 'POST' })
-      const data = await res.json() as { error?: string; courseId?: string }
+      const data = (await res.json()) as { error?: string; courseId?: string }
       if (!res.ok) {
         setSaveMsg(`Erro ao duplicar: ${data.error ?? 'falha'}`)
       } else {
@@ -477,12 +548,14 @@ export function AdminCursosEditor({
     const prev = NEW_COURSE_STEPS[Math.max(newCourseStepIndex - 1, 0)]
     setNewCourseStep(prev.id)
   }
-  const filteredEnrollments = useMemo(() =>
-    enrollments.filter((e) =>
-      !enrollSearch ||
-      e.name.toLowerCase().includes(enrollSearch.toLowerCase()) ||
-      e.email.toLowerCase().includes(enrollSearch.toLowerCase())
-    ),
+  const filteredEnrollments = useMemo(
+    () =>
+      enrollments.filter(
+        (e) =>
+          !enrollSearch ||
+          e.name.toLowerCase().includes(enrollSearch.toLowerCase()) ||
+          e.email.toLowerCase().includes(enrollSearch.toLowerCase())
+      ),
     [enrollments, enrollSearch]
   )
 
@@ -552,8 +625,12 @@ export function AdminCursosEditor({
       `}</style>
 
       <div className="topbar">
-        <div className="crumb"><a href="/admin">Admin</a> <span>›</span> <b>Cursos</b></div>
-        <div className="avatar sm" style={{ background: 'var(--ink)' }}>FB</div>
+        <div className="crumb">
+          <a href="/admin">Admin</a> <span>›</span> <b>Cursos</b>
+        </div>
+        <div className="avatar sm" style={{ background: 'var(--ink)' }}>
+          FB
+        </div>
       </div>
 
       <div className="content wide">
@@ -561,7 +638,8 @@ export function AdminCursosEditor({
           <div>
             <h1 style={{ fontSize: '26px' }}>Cursos</h1>
             <p className="muted" style={{ marginTop: '5px', fontSize: '14px' }}>
-              {courses.length} curso{courses.length !== 1 ? 's' : ''} · {publishedCount} publicado{publishedCount !== 1 ? 's' : ''}, {draftCount} rascunho{draftCount !== 1 ? 's' : ''}
+              {courses.length} curso{courses.length !== 1 ? 's' : ''} · {publishedCount} publicado
+              {publishedCount !== 1 ? 's' : ''}, {draftCount} rascunho{draftCount !== 1 ? 's' : ''}
             </p>
           </div>
           <button
@@ -572,7 +650,16 @@ export function AdminCursosEditor({
               setNewCourseStep('basico')
             }}
           >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
             Novo curso
           </button>
         </div>
@@ -580,7 +667,11 @@ export function AdminCursosEditor({
         {showNewForm && (
           <div className="new-course-form" style={{ marginTop: '16px' }}>
             <h3 style={{ display: 'none' }}>Criar novo curso</h3>
-            <form onSubmit={(e) => { void handleCreate(e) }}>
+            <form
+              onSubmit={(e) => {
+                void handleCreate(e)
+              }}
+            >
               <div className="new-course-head">
                 <div>
                   <h3>Criar novo curso</h3>
@@ -622,16 +713,34 @@ export function AdminCursosEditor({
                     <div className="wizard-grid">
                       <div className="field">
                         <label>Titulo</label>
-                        <input className="input" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Nome do curso" required />
+                        <input
+                          className="input"
+                          value={newTitle}
+                          onChange={(e) => setNewTitle(e.target.value)}
+                          placeholder="Nome do curso"
+                          required
+                        />
                       </div>
                       <div className="field">
                         <label>Categoria</label>
-                        <input className="input" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Ex: Estetica Facial" />
+                        <input
+                          className="input"
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          placeholder="Ex: Estetica Facial"
+                        />
                       </div>
                     </div>
                     <div className="field">
                       <label>Descricao</label>
-                      <textarea className="input" rows={4} value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Descricao do curso" style={{ resize: 'vertical' }} />
+                      <textarea
+                        className="input"
+                        rows={4}
+                        value={newDesc}
+                        onChange={(e) => setNewDesc(e.target.value)}
+                        placeholder="Descricao do curso"
+                        style={{ resize: 'vertical' }}
+                      />
                     </div>
                   </section>
 
@@ -639,11 +748,23 @@ export function AdminCursosEditor({
                     <div className="wizard-grid">
                       <div className="field">
                         <label>Preco (R$)</label>
-                        <input className="input" type="number" min="0" step="0.01" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="0" />
+                        <input
+                          className="input"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={newPrice}
+                          onChange={(e) => setNewPrice(e.target.value)}
+                          placeholder="0"
+                        />
                       </div>
                       <div className="field">
                         <label>Nivel</label>
-                        <select className="input" value={newLevel} onChange={(e) => setNewLevel(e.target.value)}>
+                        <select
+                          className="input"
+                          value={newLevel}
+                          onChange={(e) => setNewLevel(e.target.value)}
+                        >
                           <option value="todos">Todos os niveis</option>
                           <option value="iniciante">Iniciante</option>
                           <option value="intermediario">Intermediario</option>
@@ -651,8 +772,22 @@ export function AdminCursosEditor({
                         </select>
                       </div>
                     </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={newIsVip} onChange={(e) => setNewIsVip(e.target.checked)} />
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: 'var(--ink-2)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={newIsVip}
+                        onChange={(e) => setNewIsVip(e.target.checked)}
+                      />
                       Acesso VIP
                     </label>
                   </section>
@@ -665,17 +800,45 @@ export function AdminCursosEditor({
                       </div>
                       <div className="field">
                         <label>Preco</label>
-                        <input className="input" value={newPrice ? `R$ ${newPrice}` : 'Gratuito'} readOnly />
+                        <input
+                          className="input"
+                          value={newPrice ? `R$ ${newPrice}` : 'Gratuito'}
+                          readOnly
+                        />
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <span className="badge">{newLevel === 'todos' ? 'Todos os niveis' : LEVEL_LABELS[newLevel]}</span>
+                      <span className="badge">
+                        {newLevel === 'todos' ? 'Todos os niveis' : LEVEL_LABELS[newLevel]}
+                      </span>
                       {newCategory && <span className="badge">{newCategory}</span>}
                       {newPublished && <span className="badge blue">Publicado</span>}
-                      {newIsVip && <span className="badge" style={{ background: 'var(--indigo-tint)', color: 'var(--indigo-600)' }}>VIP</span>}
+                      {newIsVip && (
+                        <span
+                          className="badge"
+                          style={{ background: 'var(--indigo-tint)', color: 'var(--indigo-600)' }}
+                        >
+                          VIP
+                        </span>
+                      )}
                     </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', cursor: 'pointer', marginTop: '16px' }}>
-                      <input type="checkbox" checked={newPublished} onChange={(e) => setNewPublished(e.target.checked)} />
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: 'var(--ink-2)',
+                        cursor: 'pointer',
+                        marginTop: '16px',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={newPublished}
+                        onChange={(e) => setNewPublished(e.target.checked)}
+                      />
                       Publicar ao criar
                     </label>
                   </section>
@@ -684,18 +847,38 @@ export function AdminCursosEditor({
 
               <div className="wizard-actions">
                 <div>
-                  {createMsg && <span className={createMsg.startsWith('Erro') ? 'muted' : 'blue'} style={{ fontSize: '13px' }}>{createMsg}</span>}
+                  {createMsg && (
+                    <span
+                      className={createMsg.startsWith('Erro') ? 'muted' : 'blue'}
+                      style={{ fontSize: '13px' }}
+                    >
+                      {createMsg}
+                    </span>
+                  )}
                 </div>
                 <div className="right">
-                  <button className="btn btn-ghost btn-sm" type="button" onClick={prevNewCourseStep} disabled={newCourseStepIndex === 0}>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    type="button"
+                    onClick={prevNewCourseStep}
+                    disabled={newCourseStepIndex === 0}
+                  >
                     Voltar
                   </button>
                   {isLastNewCourseStep ? (
-                    <button className="btn btn-primary btn-sm" type="submit" disabled={creating || !newTitle.trim()}>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      type="submit"
+                      disabled={creating || !newTitle.trim()}
+                    >
                       {creating ? 'Criando...' : 'Criar curso'}
                     </button>
                   ) : (
-                    <button className="btn btn-primary btn-sm" type="button" onClick={nextNewCourseStep}>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      type="button"
+                      onClick={nextNewCourseStep}
+                    >
                       Proximo
                     </button>
                   )}
@@ -703,44 +886,121 @@ export function AdminCursosEditor({
               </div>
 
               <fieldset disabled style={{ display: 'none' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                <div className="field">
-                  <label>Título</label>
-                  <input className="input" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Nome do curso" required />
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '12px',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <div className="field">
+                    <label>Título</label>
+                    <input
+                      className="input"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      placeholder="Nome do curso"
+                      required
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Categoria</label>
+                    <input
+                      className="input"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      placeholder="Ex: Estética Facial"
+                    />
+                  </div>
                 </div>
-                <div className="field">
-                  <label>Categoria</label>
-                  <input className="input" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Ex: Estética Facial" />
+                <div className="field" style={{ marginBottom: '12px' }}>
+                  <label>Descrição</label>
+                  <textarea
+                    className="input"
+                    rows={2}
+                    value={newDesc}
+                    onChange={(e) => setNewDesc(e.target.value)}
+                    placeholder="Descrição do curso"
+                    style={{ resize: 'vertical' }}
+                  />
                 </div>
-              </div>
-              <div className="field" style={{ marginBottom: '12px' }}>
-                <label>Descrição</label>
-                <textarea className="input" rows={2} value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Descrição do curso" style={{ resize: 'vertical' }} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
-                <div className="field">
-                  <label>Preço (R$)</label>
-                  <input className="input" type="number" min="0" step="0.01" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="0" />
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '12px',
+                    marginBottom: '14px',
+                  }}
+                >
+                  <div className="field">
+                    <label>Preço (R$)</label>
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={newPrice}
+                      onChange={(e) => setNewPrice(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Nível</label>
+                    <select
+                      className="input"
+                      value={newLevel}
+                      onChange={(e) => setNewLevel(e.target.value)}
+                    >
+                      <option value="todos">Todos os níveis</option>
+                      <option value="iniciante">Iniciante</option>
+                      <option value="intermediario">Intermediário</option>
+                      <option value="avancado">Avançado</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="field">
-                  <label>Nível</label>
-                  <select className="input" value={newLevel} onChange={(e) => setNewLevel(e.target.value)}>
-                    <option value="todos">Todos os níveis</option>
-                    <option value="iniciante">Iniciante</option>
-                    <option value="intermediario">Intermediário</option>
-                    <option value="avancado">Avançado</option>
-                  </select>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '14px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--ink-2)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={newIsVip}
+                    onChange={(e) => setNewIsVip(e.target.checked)}
+                  />
+                  Acesso VIP (exclusivo por plano)
+                </label>
+                <div className="flex gap12" style={{ alignItems: 'center' }}>
+                  <button className="btn btn-primary btn-sm" type="submit" disabled={creating}>
+                    {creating ? 'Criando...' : 'Criar curso'}
+                  </button>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    type="button"
+                    onClick={() => {
+                      setShowNewForm(false)
+                      setCreateMsg('')
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  {createMsg && (
+                    <span
+                      className={createMsg.startsWith('Erro') ? 'muted' : 'blue'}
+                      style={{ fontSize: '13px' }}
+                    >
+                      {createMsg}
+                    </span>
+                  )}
                 </div>
-              </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', cursor: 'pointer' }}>
-                <input type="checkbox" checked={newIsVip} onChange={(e) => setNewIsVip(e.target.checked)} />
-                Acesso VIP (exclusivo por plano)
-              </label>
-              <div className="flex gap12" style={{ alignItems: 'center' }}>
-                <button className="btn btn-primary btn-sm" type="submit" disabled={creating}>{creating ? 'Criando...' : 'Criar curso'}</button>
-                <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setShowNewForm(false); setCreateMsg('') }}>Cancelar</button>
-                {createMsg && <span className={createMsg.startsWith('Erro') ? 'muted' : 'blue'} style={{ fontSize: '13px' }}>{createMsg}</span>}
-              </div>
               </fieldset>
             </form>
           </div>
@@ -751,11 +1011,48 @@ export function AdminCursosEditor({
           <div>
             {/* Filtros */}
             <div className="filter-row">
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', border: '1px solid var(--line-2)', borderRadius: 'var(--r)', padding: '8px 12px', minWidth: '200px' }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-                <input style={{ border: 'none', background: 'transparent', fontSize: '13.5px', flex: 1, outline: 'none' }} placeholder="Buscar curso..." value={search} onChange={(e) => setSearch(e.target.value)} />
+              <div
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#fff',
+                  border: '1px solid var(--line-2)',
+                  borderRadius: 'var(--r)',
+                  padding: '8px 12px',
+                  minWidth: '200px',
+                }}
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+                <input
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '13.5px',
+                    flex: 1,
+                    outline: 'none',
+                  }}
+                  placeholder="Buscar curso..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </div>
-              <select className="sel-sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | 'published' | 'draft')}>
+              <select
+                className="sel-sm"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'published' | 'draft')}
+              >
                 <option value="all">Todos</option>
                 <option value="published">Publicados</option>
                 <option value="draft">Rascunhos</option>
@@ -763,31 +1060,63 @@ export function AdminCursosEditor({
             </div>
 
             {filteredCourses.map((course) => (
-              <div key={course.id} className={`crow${course.id === selectedId ? ' sel' : ''}`} onClick={() => selectCourse(course)}>
+              <div
+                key={course.id}
+                className={`crow${course.id === selectedId ? ' sel' : ''}`}
+                onClick={() => selectCourse(course)}
+              >
                 <div className="mini">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   {course.thumbnail_url && <img src={course.thumbnail_url} alt="" />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{course.title}</div>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {course.title}
+                  </div>
                   <div className="muted" style={{ fontSize: '12px', marginTop: '2px' }}>
-                    {course.moduleCount}m · {course.lessonCount}a · {formatDuration(course.totalDurationSecs)} · {course.enrollmentCount} aluno{course.enrollmentCount !== 1 ? 's' : ''}
+                    {course.moduleCount}m · {course.lessonCount}a ·{' '}
+                    {formatDuration(course.totalDurationSecs)} · {course.enrollmentCount} aluno
+                    {course.enrollmentCount !== 1 ? 's' : ''}
                     {course.category ? ` · ${course.category}` : ''}
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
-                  {course.published
-                    ? <span className="badge green dot">Publicado</span>
-                    : <span className="badge" style={{ background: '#fdeede', color: '#b5790f' }}>Rascunho</span>
-                  }
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    gap: '4px',
+                    flexShrink: 0,
+                  }}
+                >
+                  {course.published ? (
+                    <span className="badge green dot">Publicado</span>
+                  ) : (
+                    <span className="badge" style={{ background: '#fdeede', color: '#b5790f' }}>
+                      Rascunho
+                    </span>
+                  )}
                   {course.level !== 'todos' && (
-                    <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{LEVEL_LABELS[course.level] ?? course.level}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
+                      {LEVEL_LABELS[course.level] ?? course.level}
+                    </span>
                   )}
                 </div>
               </div>
             ))}
 
             {filteredCourses.length === 0 && (
-              <div className="card card-pad muted" style={{ textAlign: 'center' }}>Nenhum curso encontrado</div>
+              <div className="card card-pad muted" style={{ textAlign: 'center' }}>
+                Nenhum curso encontrado
+              </div>
             )}
           </div>
 
@@ -797,11 +1126,27 @@ export function AdminCursosEditor({
               <div className="card card-pad">
                 {/* Abas */}
                 <div className="tabs">
-                  <button className={`tab${activeTab === 'conteudo' ? ' active' : ''}`} onClick={() => setActiveTab('conteudo')}>Conteúdo</button>
-                  <button className={`tab${activeTab === 'alunos' ? ' active' : ''}`} onClick={() => setActiveTab('alunos')}>
-                    Alunos {selectedCourse.enrollmentCount > 0 ? `(${selectedCourse.enrollmentCount})` : ''}
+                  <button
+                    className={`tab${activeTab === 'conteudo' ? ' active' : ''}`}
+                    onClick={() => setActiveTab('conteudo')}
+                  >
+                    Conteúdo
                   </button>
-                  <button className={`tab${activeTab === 'estatisticas' ? ' active' : ''}`} onClick={() => setActiveTab('estatisticas')}>Stats</button>
+                  <button
+                    className={`tab${activeTab === 'alunos' ? ' active' : ''}`}
+                    onClick={() => setActiveTab('alunos')}
+                  >
+                    Alunos{' '}
+                    {selectedCourse.enrollmentCount > 0
+                      ? `(${selectedCourse.enrollmentCount})`
+                      : ''}
+                  </button>
+                  <button
+                    className={`tab${activeTab === 'estatisticas' ? ' active' : ''}`}
+                    onClick={() => setActiveTab('estatisticas')}
+                  >
+                    Stats
+                  </button>
                 </div>
 
                 {/* ─── ABA CONTEÚDO ─── */}
@@ -809,58 +1154,241 @@ export function AdminCursosEditor({
                   <>
                     <div className="flex between aic" style={{ marginBottom: '14px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        {form.published
-                          ? <span className="badge green dot">Publicado</span>
-                          : <span className="badge" style={{ background: '#fdeede', color: '#b5790f' }}>Rascunho</span>
-                        }
+                        {form.published ? (
+                          <span className="badge green dot">Publicado</span>
+                        ) : (
+                          <span
+                            className="badge"
+                            style={{ background: '#fdeede', color: '#b5790f' }}
+                          >
+                            Rascunho
+                          </span>
+                        )}
                         {!form.published && (
-                          <button className="btn btn-primary btn-sm" type="button" onClick={() => { void handlePublishNow() }} disabled={saving}>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            type="button"
+                            onClick={() => {
+                              void handlePublishNow()
+                            }}
+                            disabled={saving}
+                          >
                             {saving ? 'Publicando...' : 'Publicar agora'}
                           </button>
                         )}
                       </div>
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        <a href={`/cursos/${selectedCourse.slug}`} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" title="Ver página pública">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" /></svg>
+                        <a
+                          href={`/cursos/${selectedCourse.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-ghost btn-sm"
+                          title="Ver página pública"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M15 3h6v6M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
+                          </svg>
                         </a>
-                        <button className="btn btn-ghost btn-sm" onClick={() => { void handleDuplicate() }} disabled={duplicating} title="Duplicar curso">
-                          {duplicating ? '...' : (
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => {
+                            void handleDuplicate()
+                          }}
+                          disabled={duplicating}
+                          title="Duplicar curso"
+                        >
+                          {duplicating ? (
+                            '...'
+                          ) : (
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <rect x="9" y="9" width="13" height="13" rx="2" />
+                              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                            </svg>
                           )}
                         </button>
                       </div>
                     </div>
 
                     {/* Thumbnail */}
-                    <div className="thumb-wrap" style={{ marginBottom: '16px' }}>
-                      {thumbUrl && <img src={thumbUrl} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                      <label className="btn btn-ghost btn-sm thumb-btn" style={{ background: 'rgba(255,255,255,.9)', border: 0, cursor: uploadingThumb ? 'wait' : 'pointer' }}>
-                        {uploadingThumb ? 'Enviando...' : thumbUrl ? 'Trocar thumbnail' : 'Adicionar thumbnail'}
-                        <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} disabled={uploadingThumb} onChange={(e) => { void handleThumbUpload(e) }} />
-                      </label>
+                    <div style={{ marginBottom: '14px' }}>
+                      <div className="thumb-wrap" style={{ marginBottom: '8px' }}>
+                        {thumbUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={thumbUrl}
+                            alt="thumbnail"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '8px',
+                              color: 'rgba(255,255,255,.5)',
+                            }}
+                          >
+                            <svg
+                              width="32"
+                              height="32"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                            >
+                              <rect x="3" y="3" width="18" height="18" rx="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                            <span style={{ fontSize: '12px' }}>Sem thumbnail</span>
+                          </div>
+                        )}
+                        <label
+                          className="thumb-btn"
+                          style={{
+                            position: 'absolute',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '7px 14px',
+                            borderRadius: '8px',
+                            background: 'rgba(255,255,255,.92)',
+                            border: '1px solid rgba(0,0,0,.1)',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: '#1a1a2e',
+                            cursor: uploadingThumb ? 'wait' : 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,.15)',
+                            transition: 'background .15s',
+                          }}
+                        >
+                          {uploadingThumb ? (
+                            <>
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                style={{ animation: 'spin 1s linear infinite' }}
+                              >
+                                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                              </svg>{' '}
+                              Enviando...
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                              </svg>{' '}
+                              {thumbUrl ? 'Trocar imagem' : 'Adicionar imagem'}
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            style={{ display: 'none' }}
+                            disabled={uploadingThumb}
+                            onChange={(e) => {
+                              void handleThumbUpload(e)
+                            }}
+                          />
+                        </label>
+                        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                      </div>
+                      {thumbMsg && (
+                        <div
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            background: thumbMsg.startsWith('Erro') ? '#fff5f5' : '#f0fdf4',
+                            color: thumbMsg.startsWith('Erro') ? '#c53030' : '#166534',
+                            border: `1px solid ${thumbMsg.startsWith('Erro') ? '#fed7d7' : '#bbf7d0'}`,
+                          }}
+                        >
+                          {thumbMsg}
+                        </div>
+                      )}
+                      <p style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '6px' }}>
+                        JPEG, PNG ou WebP · máximo 5 MB · proporção recomendada 16:9
+                      </p>
                     </div>
-                    {thumbMsg && <p style={{ fontSize: '12px', marginBottom: '10px', color: thumbMsg.startsWith('Erro') ? '#e53e3e' : '#178a4a' }}>{thumbMsg}</p>}
 
                     <div className="field" style={{ marginBottom: '12px' }}>
                       <label>Título</label>
-                      <input className="input" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+                      <input
+                        className="input"
+                        value={form.title}
+                        onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                      />
                     </div>
 
                     <div className="field" style={{ marginBottom: '12px' }}>
                       <label>Descrição</label>
-                      <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} style={{ resize: 'vertical' }} />
+                      <textarea
+                        className="input"
+                        rows={2}
+                        value={form.description}
+                        onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                        style={{ resize: 'vertical' }}
+                      />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '10px',
+                        marginBottom: '12px',
+                      }}
+                    >
                       {form.access_type === 'paid' && (
                         <div className="field">
                           <label>Preço (R$)</label>
-                          <input className="input" type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} />
+                          <input
+                            className="input"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={form.price}
+                            onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                          />
                         </div>
                       )}
                       <div className="field">
                         <label>Nível</label>
-                        <select className="input" value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}>
+                        <select
+                          className="input"
+                          value={form.level}
+                          onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
+                        >
                           <option value="todos">Todos os níveis</option>
                           <option value="iniciante">Iniciante</option>
                           <option value="intermediario">Intermediário</option>
@@ -871,30 +1399,90 @@ export function AdminCursosEditor({
 
                     <div className="field" style={{ marginBottom: '12px' }}>
                       <label>Categoria</label>
-                      <input className="input" value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} placeholder="Ex: Estética Facial" />
+                      <input
+                        className="input"
+                        value={form.category}
+                        onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                        placeholder="Ex: Estética Facial"
+                      />
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)' }}>
-                        <input type="checkbox" checked={form.published} onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))} />
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        marginBottom: '14px',
+                      }}
+                    >
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: 'var(--ink-2)',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={form.published}
+                          onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))}
+                        />
                         Publicado
                       </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)' }}>
-                        <input type="checkbox" checked={form.is_vip} onChange={(e) => setForm((f) => ({ ...f, is_vip: e.target.checked }))} />
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: 'var(--ink-2)',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={form.is_vip}
+                          onChange={(e) => setForm((f) => ({ ...f, is_vip: e.target.checked }))}
+                        />
                         Acesso VIP
                       </label>
                     </div>
 
                     {/* ─── CONFIGURAÇÕES DE ACESSO (Story 15.2) ─── */}
-                    <div style={{ borderTop: '1px solid var(--line)', paddingTop: '14px', marginBottom: '14px' }}>
-                      <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)', marginBottom: '12px' }}>Configurações de Acesso</h4>
+                    <div
+                      style={{
+                        borderTop: '1px solid var(--line)',
+                        paddingTop: '14px',
+                        marginBottom: '14px',
+                      }}
+                    >
+                      <h4
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          color: 'var(--ink-2)',
+                          marginBottom: '12px',
+                        }}
+                      >
+                        Configurações de Acesso
+                      </h4>
 
                       <div className="field" style={{ marginBottom: '12px' }}>
                         <label>Tipo de acesso</label>
                         <select
                           className="input"
                           value={form.access_type}
-                          onChange={(e) => setForm((f) => ({ ...f, access_type: e.target.value as EditForm['access_type'] }))}
+                          onChange={(e) =>
+                            setForm((f) => ({
+                              ...f,
+                              access_type: e.target.value as EditForm['access_type'],
+                            }))
+                          }
                         >
                           <option value="free">Gratuito</option>
                           <option value="paid">Pago</option>
@@ -903,11 +1491,24 @@ export function AdminCursosEditor({
                         </select>
                       </div>
 
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', marginBottom: '12px' }}>
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: 'var(--ink-2)',
+                          marginBottom: '12px',
+                        }}
+                      >
                         <input
                           type="checkbox"
                           checked={form.certificate_enabled}
-                          onChange={(e) => setForm((f) => ({ ...f, certificate_enabled: e.target.checked }))}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, certificate_enabled: e.target.checked }))
+                          }
                         />
                         Emitir certificado ao concluir
                       </label>
@@ -929,15 +1530,29 @@ export function AdminCursosEditor({
                       Duração total: {formatDuration(selectedCourse.totalDurationSecs)}
                     </div>
 
-                    <div style={{ border: '1px solid var(--line)', borderRadius: '10px', padding: '12px', background: 'var(--surface-2)', margin: '14px 0' }}>
+                    <div
+                      style={{
+                        border: '1px solid var(--line)',
+                        borderRadius: '10px',
+                        padding: '12px',
+                        background: 'var(--surface-2)',
+                        margin: '14px 0',
+                      }}
+                    >
                       <div className="flex between aic" style={{ gap: '12px' }}>
                         <div>
-                          <h4 style={{ fontSize: '13.5px', margin: '0 0 4px' }}>Avaliações do curso</h4>
+                          <h4 style={{ fontSize: '13.5px', margin: '0 0 4px' }}>
+                            Avaliações do curso
+                          </h4>
                           <p className="muted" style={{ fontSize: '12.5px', margin: 0 }}>
-                            Configure prova final e revise quizzes por aula na Central de Avaliações.
+                            Configure prova final e revise quizzes por aula na Central de
+                            Avaliações.
                           </p>
                         </div>
-                        <a className="btn btn-ghost btn-sm" href={`/admin/avaliacoes?courseId=${selectedCourse.id}`}>
+                        <a
+                          className="btn btn-ghost btn-sm"
+                          href={`/admin/avaliacoes?courseId=${selectedCourse.id}`}
+                        >
                           Abrir
                         </a>
                       </div>
@@ -950,27 +1565,70 @@ export function AdminCursosEditor({
                           modules={courseModules}
                           onModulesChange={(newModules) => {
                             setCourseModules(newModules)
-                            setCourses((prev) => prev.map((c) =>
-                              c.id === selectedId
-                                ? { ...c, modules: newModules, moduleCount: newModules.length, lessonCount: newModules.reduce((s, m) => s + m.lessons.length, 0) }
-                                : c
-                            ))
+                            setCourses((prev) =>
+                              prev.map((c) =>
+                                c.id === selectedId
+                                  ? {
+                                      ...c,
+                                      modules: newModules,
+                                      moduleCount: newModules.length,
+                                      lessonCount: newModules.reduce(
+                                        (s, m) => s + m.lessons.length,
+                                        0
+                                      ),
+                                    }
+                                  : c
+                              )
+                            )
                           }}
                         />
                       </div>
                     )}
 
                     <div className="flex gap8" style={{ marginTop: '16px' }}>
-                      <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => { void handleSave() }} disabled={saving}>
+                      <button
+                        className="btn btn-primary"
+                        style={{ flex: 1 }}
+                        onClick={() => {
+                          void handleSave()
+                        }}
+                        disabled={saving}
+                      >
                         {saving ? 'Salvando...' : 'Salvar'}
                       </button>
-                      <button className="btn btn-ghost btn-sm" style={{ color: '#e53e3e', borderColor: '#fed7d7' }} onClick={() => { void handleDelete() }} disabled={deleting}>
-                        {deleting ? '...' : (
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4h6v2" /></svg>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: '#e53e3e', borderColor: '#fed7d7' }}
+                        onClick={() => {
+                          void handleDelete()
+                        }}
+                        disabled={deleting}
+                      >
+                        {deleting ? (
+                          '...'
+                        ) : (
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4h6v2" />
+                          </svg>
                         )}
                       </button>
                     </div>
-                    {saveMsg && <p className={saveMsg.startsWith('Erro') ? 'muted' : 'blue'} style={{ fontSize: '13px', marginTop: '8px' }}>{saveMsg}</p>}
+                    {saveMsg && (
+                      <p
+                        className={saveMsg.startsWith('Erro') ? 'muted' : 'blue'}
+                        style={{ fontSize: '13px', marginTop: '8px' }}
+                      >
+                        {saveMsg}
+                      </p>
+                    )}
                   </>
                 )}
 
@@ -978,38 +1636,143 @@ export function AdminCursosEditor({
                 {activeTab === 'alunos' && (
                   <>
                     <div className="flex between aic" style={{ marginBottom: '14px' }}>
-                      <h3 style={{ fontSize: '15px' }}>{filteredEnrollments.length} aluno{filteredEnrollments.length !== 1 ? 's' : ''}</h3>
+                      <h3 style={{ fontSize: '15px' }}>
+                        {filteredEnrollments.length} aluno
+                        {filteredEnrollments.length !== 1 ? 's' : ''}
+                      </h3>
                     </div>
                     <div className="search-bar-sm">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-                      <input placeholder="Buscar aluno..." value={enrollSearch} onChange={(e) => setEnrollSearch(e.target.value)} />
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m21 21-4.3-4.3" />
+                      </svg>
+                      <input
+                        placeholder="Buscar aluno..."
+                        value={enrollSearch}
+                        onChange={(e) => setEnrollSearch(e.target.value)}
+                      />
                     </div>
-                    {enrollLoading && <p className="muted" style={{ fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>Carregando...</p>}
+                    {enrollLoading && (
+                      <p
+                        className="muted"
+                        style={{ fontSize: '13px', textAlign: 'center', padding: '20px 0' }}
+                      >
+                        Carregando...
+                      </p>
+                    )}
                     {!enrollLoading && filteredEnrollments.length === 0 && (
-                      <p className="muted" style={{ fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>Nenhum aluno matriculado</p>
+                      <p
+                        className="muted"
+                        style={{ fontSize: '13px', textAlign: 'center', padding: '20px 0' }}
+                      >
+                        Nenhum aluno matriculado
+                      </p>
                     )}
                     <div style={{ maxHeight: '420px', overflowY: 'auto' }}>
                       {filteredEnrollments.map((e) => (
                         <div key={e.id} className="enroll-row">
-                          <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--blue)', display: 'grid', placeItems: 'center', color: '#fff', fontSize: '11px', fontWeight: 700, flexShrink: 0 }}>
-                            {e.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                          <div
+                            style={{
+                              width: '30px',
+                              height: '30px',
+                              borderRadius: '50%',
+                              background: 'var(--blue)',
+                              display: 'grid',
+                              placeItems: 'center',
+                              color: '#fff',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {e.name
+                              .split(' ')
+                              .map((n) => n[0])
+                              .slice(0, 2)
+                              .join('')
+                              .toUpperCase()}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: 600, fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.name}</div>
-                            <div style={{ fontSize: '11.5px', color: 'var(--muted)', marginBottom: '4px' }}>{formatDate(e.enrolledAt)}</div>
+                            <div
+                              style={{
+                                fontWeight: 600,
+                                fontSize: '13px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {e.name}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '11.5px',
+                                color: 'var(--muted)',
+                                marginBottom: '4px',
+                              }}
+                            >
+                              {formatDate(e.enrolledAt)}
+                            </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div className="prog-bar"><span style={{ width: `${e.progress}%` }} /></div>
-                              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-2)', flexShrink: 0 }}>{e.progress}%</span>
+                              <div className="prog-bar">
+                                <span style={{ width: `${e.progress}%` }} />
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  color: 'var(--ink-2)',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {e.progress}%
+                              </span>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
-                            {e.status === 'completed'
-                              ? <span className="badge green dot" style={{ fontSize: '11px' }}>Concluído</span>
-                              : <span className="badge" style={{ fontSize: '11px', background: '#e8f4ff', color: '#1a6aab' }}>Ativo</span>
-                            }
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'flex-end',
+                              gap: '4px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {e.status === 'completed' ? (
+                              <span className="badge green dot" style={{ fontSize: '11px' }}>
+                                Concluído
+                              </span>
+                            ) : (
+                              <span
+                                className="badge"
+                                style={{
+                                  fontSize: '11px',
+                                  background: '#e8f4ff',
+                                  color: '#1a6aab',
+                                }}
+                              >
+                                Ativo
+                              </span>
+                            )}
                             <button
-                              style={{ fontSize: '11px', color: '#e53e3e', background: 'none', border: 'none', cursor: 'pointer', padding: '0' }}
-                              onClick={() => { void handleRemoveEnrollment(e.id) }}
+                              style={{
+                                fontSize: '11px',
+                                color: '#e53e3e',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '0',
+                              }}
+                              onClick={() => {
+                                void handleRemoveEnrollment(e.id)
+                              }}
                               disabled={removingId === e.id}
                             >
                               {removingId === e.id ? '...' : 'Remover'}
@@ -1024,39 +1787,104 @@ export function AdminCursosEditor({
                 {/* ─── ABA ESTATÍSTICAS ─── */}
                 {activeTab === 'estatisticas' && (
                   <>
-                    {enrollLoading && <p className="muted" style={{ fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>Carregando...</p>}
+                    {enrollLoading && (
+                      <p
+                        className="muted"
+                        style={{ fontSize: '13px', textAlign: 'center', padding: '20px 0' }}
+                      >
+                        Carregando...
+                      </p>
+                    )}
                     {!enrollLoading && stats && (
                       <>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
-                          <div className="stat-mini"><div className="n">{stats.total}</div><div className="l">Matriculados</div></div>
-                          <div className="stat-mini"><div className="n">{stats.concluded}</div><div className="l">Concluíram</div></div>
-                          <div className="stat-mini"><div className="n">{stats.avgProgress}%</div><div className="l">Progresso médio</div></div>
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '10px',
+                            marginBottom: '18px',
+                          }}
+                        >
                           <div className="stat-mini">
-                            <div className="n">{stats.total > 0 ? Math.round((stats.concluded / stats.total) * 100) : 0}%</div>
+                            <div className="n">{stats.total}</div>
+                            <div className="l">Matriculados</div>
+                          </div>
+                          <div className="stat-mini">
+                            <div className="n">{stats.concluded}</div>
+                            <div className="l">Concluíram</div>
+                          </div>
+                          <div className="stat-mini">
+                            <div className="n">{stats.avgProgress}%</div>
+                            <div className="l">Progresso médio</div>
+                          </div>
+                          <div className="stat-mini">
+                            <div className="n">
+                              {stats.total > 0
+                                ? Math.round((stats.concluded / stats.total) * 100)
+                                : 0}
+                              %
+                            </div>
                             <div className="l">Taxa conclusão</div>
                           </div>
                         </div>
 
-                        <h4 style={{ fontSize: '13.5px', fontWeight: 700, marginBottom: '12px' }}>Distribuição de progresso</h4>
+                        <h4 style={{ fontSize: '13.5px', fontWeight: 700, marginBottom: '12px' }}>
+                          Distribuição de progresso
+                        </h4>
                         {[
-                          { label: 'Não iniciado (0%)', count: enrollments.filter((e) => e.progress === 0).length },
-                          { label: 'Em progresso (1-99%)', count: enrollments.filter((e) => e.progress > 0 && e.progress < 100).length },
-                          { label: 'Concluído (100%)', count: enrollments.filter((e) => e.progress === 100).length },
+                          {
+                            label: 'Não iniciado (0%)',
+                            count: enrollments.filter((e) => e.progress === 0).length,
+                          },
+                          {
+                            label: 'Em progresso (1-99%)',
+                            count: enrollments.filter((e) => e.progress > 0 && e.progress < 100)
+                              .length,
+                          },
+                          {
+                            label: 'Concluído (100%)',
+                            count: enrollments.filter((e) => e.progress === 100).length,
+                          },
                         ].map((row) => (
                           <div key={row.label} style={{ marginBottom: '10px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                fontSize: '13px',
+                                marginBottom: '4px',
+                              }}
+                            >
                               <span className="muted">{row.label}</span>
                               <b>{row.count}</b>
                             </div>
-                            <div style={{ height: '6px', background: '#eef0f3', borderRadius: '999px', overflow: 'hidden' }}>
-                              <div style={{ height: '100%', background: 'var(--blue)', width: `${stats.total > 0 ? Math.round((row.count / stats.total) * 100) : 0}%` }} />
+                            <div
+                              style={{
+                                height: '6px',
+                                background: '#eef0f3',
+                                borderRadius: '999px',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  height: '100%',
+                                  background: 'var(--blue)',
+                                  width: `${stats.total > 0 ? Math.round((row.count / stats.total) * 100) : 0}%`,
+                                }}
+                              />
                             </div>
                           </div>
                         ))}
                       </>
                     )}
                     {!enrollLoading && !stats && (
-                      <p className="muted" style={{ fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>Sem dados de progresso ainda</p>
+                      <p
+                        className="muted"
+                        style={{ fontSize: '13px', textAlign: 'center', padding: '20px 0' }}
+                      >
+                        Sem dados de progresso ainda
+                      </p>
                     )}
                   </>
                 )}

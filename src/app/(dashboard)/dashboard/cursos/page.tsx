@@ -18,6 +18,14 @@ interface EnrollmentWithCourse extends EnrollmentRow {
 
 const THUMB_COLORS = ['', 'b2', 'b3', 'b4']
 
+function formatExpiry(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+}
+
 function CourseIcon() {
   return (
     <svg
@@ -45,7 +53,7 @@ export default async function MeusCursosPage() {
     .from('enrollments')
     .select('*, courses(*)')
     .eq('user_id', user.id)
-    .in('status', ['active', 'completed'])
+    .in('status', ['active', 'completed', 'expired'])
     .order('enrolled_at', { ascending: false })
 
   const typedEnrollments = (enrollments ?? []) as unknown as EnrollmentWithCourse[]
@@ -95,12 +103,10 @@ export default async function MeusCursosPage() {
         completedLessons: completedLessons ?? 0,
         totalLessons: totalLessons ?? 0,
       }
-    }),
+    })
   )
 
-  const valid = enrollmentsWithProgress.filter(
-    (e): e is NonNullable<typeof e> => e !== null,
-  )
+  const valid = enrollmentsWithProgress.filter((e): e is NonNullable<typeof e> => e !== null)
 
   return (
     <>
@@ -163,6 +169,10 @@ export default async function MeusCursosPage() {
                   ? Math.round((item.completedLessons / item.totalLessons) * 100)
                   : 0
               const isComplete = item.enrollment.status === 'completed' || pct === 100
+              const expiresAt = item.enrollment.expires_at
+              const isExpired =
+                item.enrollment.status === 'expired' ||
+                (expiresAt ? new Date(expiresAt) < new Date() : false)
               const thumbColor = THUMB_COLORS[idx % THUMB_COLORS.length]
               const thumbUrl = (item.course as CourseRow & { thumbnail_url?: string | null })
                 .thumbnail_url
@@ -190,7 +200,10 @@ export default async function MeusCursosPage() {
                     <div className="pmeta">
                       <span>{pct}% concluído</span>
                       {isComplete ? (
-                        <span className="badge green" style={{ padding: '2px 8px', fontSize: '11px' }}>
+                        <span
+                          className="badge green"
+                          style={{ padding: '2px 8px', fontSize: '11px' }}
+                        >
                           Concluído
                         </span>
                       ) : (
@@ -199,6 +212,18 @@ export default async function MeusCursosPage() {
                         </span>
                       )}
                     </div>
+                    {expiresAt ? (
+                      <p
+                        className={`text-xs font-medium ${
+                          isExpired ? 'text-red-500' : 'text-zinc-500'
+                        }`}
+                        style={{ marginTop: '2px', marginBottom: '8px' }}
+                      >
+                        {isExpired
+                          ? 'Acesso expirado'
+                          : `Acesso válido até ${formatExpiry(expiresAt)}`}
+                      </p>
+                    ) : null}
                     <div className="prog-wrap">
                       <span style={{ width: `${pct}%` }} />
                     </div>

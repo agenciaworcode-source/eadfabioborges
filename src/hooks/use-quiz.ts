@@ -12,7 +12,9 @@ export interface Question {
 
 export interface QuizData {
   id: string
-  lesson_id: string
+  lesson_id: string | null
+  course_id?: string | null
+  scope?: 'lesson' | 'course'
   title: string
   pass_score: number
   attempts_allowed: number
@@ -34,6 +36,7 @@ export interface SubmitResult {
   passed: boolean
   attemptsUsed: number
   attemptsAllowed: number
+  courseCompleted?: boolean
   correctAnswers?: Record<string, string>
 }
 
@@ -46,6 +49,19 @@ export function useQuizByLesson(lessonId: string | undefined) {
       return res.json() as Promise<{ quiz: QuizData | null }>
     },
     enabled: !!lessonId,
+    staleTime: 60_000,
+  })
+}
+
+export function useQuizByCourse(courseId: string | undefined) {
+  return useQuery<{ quiz: QuizData | null }>({
+    queryKey: ['quiz', 'course', courseId],
+    queryFn: async () => {
+      const res = await fetch(`/api/quiz/course/${courseId}`)
+      if (!res.ok) throw new Error('Erro ao buscar prova final')
+      return res.json() as Promise<{ quiz: QuizData | null }>
+    },
+    enabled: !!courseId,
     staleTime: 60_000,
   })
 }
@@ -71,7 +87,7 @@ export function useSubmitQuiz() {
 
   return async function submitQuiz(
     quizId: string,
-    lessonId: string,
+    lessonId: string | undefined,
     answers: Record<string, string>
   ): Promise<SubmitResult> {
     const res = await fetch('/api/quiz/submit', {
@@ -89,7 +105,9 @@ export function useSubmitQuiz() {
 
     // Invalida cache da tentativa para refletir novo resultado
     await queryClient.invalidateQueries({ queryKey: ['quiz', 'attempt', quizId] })
-    await queryClient.invalidateQueries({ queryKey: ['quiz', 'lesson', lessonId] })
+    if (lessonId) {
+      await queryClient.invalidateQueries({ queryKey: ['quiz', 'lesson', lessonId] })
+    }
 
     return result
   }

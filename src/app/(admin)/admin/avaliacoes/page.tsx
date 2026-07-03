@@ -51,23 +51,41 @@ function toQuizSummary(quiz: QuizRaw | undefined): QuizSummary | null {
   }
 }
 
+// MÓDULO DESATIVADO — defina QUIZ_ENABLED = true para reativar
+const QUIZ_ENABLED = false
+
 export default async function AdminAvaliacoesPage({ searchParams }: PageProps) {
+  if (!QUIZ_ENABLED) {
+    return (
+      <div className="content wide">
+        <div className="card card-pad" style={{ textAlign: 'center', padding: '60px 40px' }}>
+          <h1 style={{ fontSize: '22px', marginBottom: '12px' }}>Módulo desativado</h1>
+          <p className="muted">O módulo de Avaliações está temporariamente desativado.</p>
+        </div>
+      </div>
+    )
+  }
+
   const supabase = createClient()
 
   const [{ data: coursesData, error: coursesError }, { data: quizzesData, error: quizzesError }] =
     await Promise.all([
       supabase
         .from('courses')
-        .select(`
+        .select(
+          `
           id, title, slug, published,
           modules(id, title, order,
             lessons(id, title, order)
           )
-        `)
+        `
+        )
         .order('title'),
       supabase
         .from('quizzes')
-        .select('id, lesson_id, course_id, scope, title, pass_score, attempts_allowed, questions(id)')
+        .select(
+          'id, lesson_id, course_id, scope, title, pass_score, attempts_allowed, questions(id)'
+        )
         .in('scope', ['lesson', 'course']),
     ])
 

@@ -286,6 +286,9 @@ small{ font-size:13px; }
 /* mobile frame helper (for gallery) */
 .devicewrap{ display:flex; gap:40px; flex-wrap:wrap; align-items:flex-start; }
 
+/* overflow wrapper para tabelas — evita quebra horizontal */
+.tbl-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
 @media (max-width:1000px){
   .g4{ grid-template-columns:repeat(2,1fr); }
   .g3{ grid-template-columns:1fr 1fr; }
@@ -296,9 +299,19 @@ small{ font-size:13px; }
   .side{ display:none; }
   .g2,.g3,.g4{ grid-template-columns:1fr; }
   .pubnav .links{ display:none; }
-  .foot .cols{ grid-template-columns:1fr 1fr; }
+  .foot .cols{ grid-template-columns:1fr; }
+  .foot .bottom{ flex-wrap:wrap; gap:8px; }
   .content,.content.wide{ padding:20px; }
+  .topbar{ padding:0 20px; }
 }
+@media (max-width:480px){
+  .pubnav-cta{ display:none; }
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ============================================================
    Tailwind base — kept after mb.css so mb.css takes priority

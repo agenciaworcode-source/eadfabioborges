@@ -6,6 +6,8 @@ import { BoasVindasEmail } from '@/emails/BoasVindasEmail'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  // `next` é passado quando o OAuth foi iniciado a partir de um checkout
+  const next = searchParams.get('next') ?? '/dashboard'
 
   if (!code) {
     return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`)
@@ -30,19 +32,19 @@ export async function GET(request: NextRequest) {
 
     if (isFirstLogin) {
       const name =
-        (user.user_metadata?.full_name as string | undefined) ??
-        user.email.split('@')[0] ??
-        'Aluno'
+        (user.user_metadata?.full_name as string | undefined) ?? user.email.split('@')[0] ?? 'Aluno'
       void sendEmail(
         user.email,
         'Bem-vindo(a) à Mentoria Fábio Borges!',
         BoasVindasEmail({
           name,
           dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-        }),
+        })
       )
     }
   }
 
-  return NextResponse.redirect(`${origin}/dashboard`)
+  // Redireciona para `next` (que pode ser /checkout/iniciar?courseId=...) ou /dashboard
+  const redirectTo = next.startsWith('/') ? `${origin}${next}` : `${origin}/dashboard`
+  return NextResponse.redirect(redirectTo)
 }

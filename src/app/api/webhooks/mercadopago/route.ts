@@ -19,13 +19,13 @@ function validateMpSignature(
   xSignature: string,
   xRequestId: string,
   paymentId: string,
-  secret: string,
+  secret: string
 ): boolean {
   const parts = Object.fromEntries(
     xSignature.split(',').map((part) => {
       const [k, v] = part.split('=')
       return [k.trim(), v?.trim()]
-    }),
+    })
   )
   const ts = parts['ts']
   const v1 = parts['v1']
@@ -85,22 +85,15 @@ export async function POST(request: Request) {
       const [, courseId, userId] = parts
       if (!courseId || !userId) return NextResponse.json({ received: true })
 
-      const { data: existing } = await supabase
-        .from('enrollments')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('course_id', courseId)
-        .maybeSingle()
+      await activateCourseEnrollment(userId, courseId)
+    }
 
-      if (!existing) {
-        const enrollment = await createEnrollmentWithAccessWindow(supabase, {
-          userId,
-          courseId,
-        })
+    if (type === 'cart') {
+      const [, userId, rawCourseIds] = parts
+      if (!userId || !rawCourseIds) return NextResponse.json({ received: true })
 
-        if (enrollment.error) {
-          throw new Error(enrollment.error)
-        }
+      for (const courseId of rawCourseIds.split(',').filter(Boolean)) {
+        await activateCourseEnrollment(userId, courseId)
       }
     }
 
@@ -146,4 +139,25 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ received: true })
+}
+
+async function activateCourseEnrollment(userId: string, courseId: string) {
+  const supabase = createServiceClient()
+  const { data: existing } = await supabase
+    .from('enrollments')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('course_id', courseId)
+    .maybeSingle()
+
+  if (existing) return
+
+  const enrollment = await createEnrollmentWithAccessWindow(supabase, {
+    userId,
+    courseId,
+  })
+
+  if (enrollment.error) {
+    throw new Error(enrollment.error)
+  }
 }

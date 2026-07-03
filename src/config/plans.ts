@@ -10,7 +10,6 @@ export interface PlanMeta {
   billingOptions: ('monthly' | 'annual')[]
   hierarchyLevel: number
   isFeatured?: boolean
-  isCustomPricing?: boolean
 }
 
 export const PLANS: PlanMeta[] = [
@@ -28,15 +27,14 @@ export const PLANS: PlanMeta[] = [
     id: 'prata',
     name: 'Prata',
     badge: 'plan-prata',
-    audience: 'Iniciantes',
+    audience: 'Estudantes e iniciantes na área da estética',
     description:
-      'O ponto de partida ideal para quem quer dominar estética avançada com apoio do mentor.',
+      'O ponto de partida ideal para quem quer dominar a eletrotermoterapia aplicada à estética com base científica.',
     features: [
-      'Acesso a todos os cursos pagos da plataforma',
-      'Videoconferência mensal em grupo com Fábio Borges',
+      'Plataforma com videoconferências, vídeoaulas e palestras online',
+      'Material complementar digital (apostilas, artigos científicos e livros)',
+      'Acesso a todos os cursos da plataforma',
       'Certificado digital em cada trilha concluída',
-      'Materiais e protocolos para download',
-      'Acesso à comunidade de alunas',
     ],
     billingOptions: ['monthly', 'annual'],
     hierarchyLevel: 1,
@@ -45,15 +43,13 @@ export const PLANS: PlanMeta[] = [
     id: 'ouro',
     name: 'Ouro',
     badge: 'plan-ouro',
-    audience: 'Profissionais',
+    audience: 'Profissionais liberais e professores de estética',
     description:
-      'Para quem já atua na área e quer elevar o nível da clínica com suporte direto do mentor.',
+      'Para quem já atua na área e quer elevar o nível com suporte direto do mentor em dias e horários comerciais.',
     features: [
       'Tudo do Prata',
-      'Atendimento por telefone com o mentor',
-      'Reunião particular mensal (1h)',
-      'Acesso antecipado a novos cursos',
-      'Badge verificável de mentoriada Ouro',
+      'Telefone exclusivo do mentor (ligação e videochamada em horário comercial)',
+      'E-mail exclusivo para dúvidas, orientações e material de estudo',
     ],
     billingOptions: ['monthly', 'annual'],
     hierarchyLevel: 2,
@@ -63,15 +59,15 @@ export const PLANS: PlanMeta[] = [
     id: 'diamante',
     name: 'Diamante',
     badge: 'plan-diamante',
-    audience: 'Clínicas',
+    audience: 'Microempreendedores — clínicas e consultórios',
     description:
-      'Presença do mentor dentro da sua clínica — treinamento de equipe e visita presencial.',
+      'Presença do mentor dentro da sua clínica: planejamento de arsenal, treinamento de equipe e visita presencial.',
     features: [
       'Tudo do Ouro',
-      'Treinamento particular para a sua equipe',
-      'Visita presencial à clínica (1x/ano)',
-      'Suporte prioritário 24h',
-      'Co-branded nos materiais da clínica',
+      'Reunião particular online a cada 60 dias (planejamento de clínica, até 60 min)',
+      'Treinamento online particular para equipamentos a cada 60 dias (até 60 min)',
+      'Possibilidade de visita física ao local de trabalho (sujeito a disponibilidade)',
+      'Uso do Selo "MENTORIA FÁBIO BORGES" nos materiais da clínica',
     ],
     billingOptions: ['monthly', 'annual'],
     hierarchyLevel: 3,
@@ -80,19 +76,19 @@ export const PLANS: PlanMeta[] = [
     id: 'macroempresa',
     name: 'Macroempresa',
     badge: 'plan-diamante',
-    audience: 'Indústrias / Franquias',
+    audience: 'Grandes empresas do setor estético',
     description:
-      'Parceria estratégica para redes de clínicas, franquias e indústrias do setor estético.',
+      'Parceria estratégica para redes, franquias e indústrias de equipamentos eletrotermoterapêuticos.',
     features: [
       'Tudo do Diamante',
-      'Uso de imagem e marca do Fábio Borges',
-      'Palestras corporativas para a rede',
-      'Treinamento de múltiplas equipes',
-      'Contrato personalizado por demanda',
+      '6 reuniões anuais online (equipamentos, cosméticos, pesquisa — até 90 min cada)',
+      '6 treinamentos online anuais para uso de equipamentos (até 90 min cada)',
+      '2 visitas físicas gratuitas de 4h ou 1 de 8h por ano',
+      '2 palestras em congressos/eventos por ano (até 1h cada)',
+      'Uso do nome e imagem do mentor em material publicitário da empresa',
     ],
-    billingOptions: ['annual'],
+    billingOptions: ['monthly', 'annual'],
     hierarchyLevel: 4,
-    isCustomPricing: true,
   },
 ]
 
@@ -117,7 +113,7 @@ export function hasAccessToContent(userPlan: string, requiredPlan: string): bool
   return userLevel >= requiredLevel
 }
 
-/** Formata centavos BRL → string de exibição (ex: 9700 → "R$ 97") */
+/** Formata centavos BRL → string de exibição (ex: 12500 → "R$ 125") */
 export function formatPlanPrice(cents: number): string {
   if (cents === 0) return 'Sob consulta'
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)

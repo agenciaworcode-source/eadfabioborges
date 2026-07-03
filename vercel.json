@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/expire-enrollments",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/subscription-expiry-warning",
+      "schedule": "0 10 * * *"
     }
   ]
 }

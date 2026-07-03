@@ -1,10 +1,15 @@
+// ISR: página de curso é pública e raramente muda — revalida a cada 60 s
+export const revalidate = 60
+
 import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import { PublicNav } from '@/components/layout/PublicNav'
 import { PublicFooter } from '@/components/layout/PublicFooter'
 import { CheckoutButton } from '@/components/checkout/CheckoutButton'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createPublicClient } from '@supabase/supabase-js'
 
 interface PageProps {
   params: { slug: string }
@@ -34,7 +39,7 @@ interface CourseDetail {
 }
 
 function formatPrice(price: number | null, isVip: boolean): string {
-  if (isVip) return 'Incluso no plano'
+  if (isVip) return 'Incluso nos planos'
   if (!price) return 'Gratuito'
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)
 }
@@ -45,7 +50,9 @@ const getCourse = cache(async (slug: string): Promise<CourseDetail | null> => {
   const supabase = createClient()
   const { data } = await supabase
     .from('courses')
-    .select('id, slug, title, description, price, is_vip, thumbnail_url, modules(id, title, order, is_free_preview, lessons(id))')
+    .select(
+      'id, slug, title, description, price, is_vip, thumbnail_url, modules(id, title, order, is_free_preview, lessons(id))'
+    )
     .eq('slug', slug)
     .eq('published', true)
     .single()
@@ -53,8 +60,17 @@ const getCourse = cache(async (slug: string): Promise<CourseDetail | null> => {
   return data as CourseDetail | null
 })
 
-const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? 'https://ead.fabioborgesoficial.com.br'
+// Pré-renderiza todos os slugs conhecidos em build time
+export async function generateStaticParams() {
+  const supabase = createPublicClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { data } = await supabase.from('courses').select('slug').eq('published', true)
+  return (data ?? []).map((c: { slug: string }) => ({ slug: c.slug }))
+}
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://ead.fabioborgesoficial.com.br'
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const course = await getCourse(params.slug)
@@ -120,20 +136,26 @@ export default async function CursoDetailPage({ params }: PageProps) {
         <div className="wrap course-hero-grid">
           <div>
             {course.thumbnail_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={course.thumbnail_url}
-                alt={course.title}
+              <div
                 style={{
-                  width: '100%',
+                  position: 'relative',
                   aspectRatio: '16/9',
-                  objectFit: 'cover',
                   borderRadius: 'var(--r-lg)',
+                  overflow: 'hidden',
                   marginBottom: '20px',
                 }}
-              />
+              >
+                <Image
+                  src={course.thumbnail_url}
+                  alt={course.title}
+                  fill
+                  priority
+                  sizes="(max-width: 900px) 100vw, 60vw"
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
             )}
-            {course.is_vip && <span className="vip-tag">Incluso nos planos VIP</span>}
+            {course.is_vip && <span className="vip-tag">Incluso em todos os planos</span>}
             <h1>{course.title}</h1>
             {course.description && <p className="desc">{course.description}</p>}
             <div className="course-meta">
@@ -165,26 +187,72 @@ export default async function CursoDetailPage({ params }: PageProps) {
             {!course.is_vip && course.price && (
               <div className="price-sub">pagamento único · acesso vitalício</div>
             )}
-            {course.is_vip && (
-              <div className="price-sub">disponível nos planos Prata, Ouro e Diamante</div>
+            {course.is_vip && <div className="price-sub">incluso em qualquer plano ativo</div>}
+
+            {course.is_vip ? (
+              <>
+                <a href="/planos" className="btn btn-primary btn-block">
+                  Ver planos de mentoria
+                </a>
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'var(--muted)',
+                    textAlign: 'center',
+                    marginTop: '12px',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Este curso está incluso em qualquer plano — Prata, Ouro, Diamante ou Macroempresa.
+                </p>
+              </>
+            ) : (
+              <CheckoutButton
+                courseId={course.id}
+                courseSlug={course.slug}
+                label="Quero me matricular"
+                className="btn btn-primary btn-block"
+              />
             )}
-            <CheckoutButton
-              courseId={course.id}
-              courseSlug={course.slug}
-              label="Quero me matricular"
-              className="btn btn-primary btn-block"
-            />
+
             <ul className="perks">
               <li>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
                 Acesso imediato após confirmação
               </li>
               <li>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
                 Certificado digital verificável
               </li>
               <li>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
                 Suporte da comunidade
               </li>
             </ul>
@@ -205,7 +273,8 @@ export default async function CursoDetailPage({ params }: PageProps) {
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     {mod.is_free_preview && <span className="preview-badge">Prévia grátis</span>}
                     <span className="mc">
-                      {mod.lessons?.length ?? 0} {(mod.lessons?.length ?? 0) === 1 ? 'aula' : 'aulas'}
+                      {mod.lessons?.length ?? 0}{' '}
+                      {(mod.lessons?.length ?? 0) === 1 ? 'aula' : 'aulas'}
                     </span>
                   </div>
                 </div>

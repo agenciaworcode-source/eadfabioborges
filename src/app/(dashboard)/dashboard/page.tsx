@@ -53,57 +53,68 @@ export default async function DashboardPage() {
     .select('id', { count: 'exact', head: true })
     .eq('user_id', user.id)
 
-  // Progresso por curso
-  const enrollmentsWithProgress = await Promise.all(
-    typedEnrollments.map(async (enrollment) => {
+  // Progresso por curso — 3 queries planas (antes era N×3 queries)
+  const courseIds = typedEnrollments
+    .map((e) => e.courses?.id)
+    .filter((id): id is string => id != null)
+
+  const allModuleRows: Array<{ id: string; course_id: string }> = []
+  const allLessonRows: Array<{ id: string; module_id: string }> = []
+  const completedLessonSet = new Set<string>()
+
+  if (courseIds.length > 0) {
+    const { data: allModules } = await supabase
+      .from('modules')
+      .select('id, course_id')
+      .in('course_id', courseIds)
+    allModuleRows.push(...((allModules ?? []) as Array<{ id: string; course_id: string }>))
+
+    const allModuleIds = allModuleRows.map((m) => m.id)
+    if (allModuleIds.length > 0) {
+      const { data: allLessons } = await supabase
+        .from('lessons')
+        .select('id, module_id')
+        .in('module_id', allModuleIds)
+      allLessonRows.push(...((allLessons ?? []) as Array<{ id: string; module_id: string }>))
+
+      const allLessonIds = allLessonRows.map((l) => l.id)
+      if (allLessonIds.length > 0) {
+        const { data: progressRows } = await supabase
+          .from('lesson_progress')
+          .select('lesson_id')
+          .eq('user_id', user.id)
+          .in('lesson_id', allLessonIds)
+          .eq('completed', true)
+        for (const p of (progressRows ?? []) as Array<{ lesson_id: string }>) {
+          completedLessonSet.add(p.lesson_id)
+        }
+      }
+    }
+  }
+
+  // Mapas para lookup O(1)
+  const moduleByCourse: Record<string, string[]> = {}
+  for (const m of allModuleRows) {
+    if (!moduleByCourse[m.course_id]) moduleByCourse[m.course_id] = []
+    moduleByCourse[m.course_id].push(m.id)
+  }
+  const lessonsByModule: Record<string, string[]> = {}
+  for (const l of allLessonRows) {
+    if (!lessonsByModule[l.module_id]) lessonsByModule[l.module_id] = []
+    lessonsByModule[l.module_id].push(l.id)
+  }
+
+  const validEnrollments = typedEnrollments
+    .map((enrollment) => {
       const course = enrollment.courses
       if (!course) return null
-
-      const { data: modules } = await supabase
-        .from('modules')
-        .select('id')
-        .eq('course_id', course.id)
-
-      const moduleIds = ((modules ?? []) as Array<{ id: string }>).map((m) => m.id)
-
-      if (moduleIds.length === 0) {
-        return { enrollment, course, completedLessons: 0, totalLessons: 0 }
-      }
-
-      const { count: totalLessons } = await supabase
-        .from('lessons')
-        .select('id', { count: 'exact', head: true })
-        .in('module_id', moduleIds)
-
-      const { data: lessonRows } = await supabase
-        .from('lessons')
-        .select('id')
-        .in('module_id', moduleIds)
-
-      const lessonIds = ((lessonRows ?? []) as Array<{ id: string }>).map((l) => l.id)
-
-      const { count: completedLessons } =
-        lessonIds.length > 0
-          ? await supabase
-              .from('lesson_progress')
-              .select('id', { count: 'exact', head: true })
-              .eq('user_id', user.id)
-              .in('lesson_id', lessonIds)
-              .eq('completed', true)
-          : { count: 0 }
-
-      return {
-        enrollment,
-        course,
-        completedLessons: completedLessons ?? 0,
-        totalLessons: totalLessons ?? 0,
-      }
+      const courseModuleIds = moduleByCourse[course.id] ?? []
+      const courseLessonIds = courseModuleIds.flatMap((mid) => lessonsByModule[mid] ?? [])
+      const totalLessons = courseLessonIds.length
+      const completedLessons = courseLessonIds.filter((lid) => completedLessonSet.has(lid)).length
+      return { enrollment, course, completedLessons, totalLessons }
     })
-  )
-
-  const validEnrollments = enrollmentsWithProgress.filter(
-    (e): e is NonNullable<typeof e> => e !== null
-  )
+    .filter((e): e is NonNullable<typeof e> => e !== null)
 
   const totalCompleted = validEnrollments.reduce((acc, e) => acc + e.completedLessons, 0)
   const totalLessons = validEnrollments.reduce((acc, e) => acc + e.totalLessons, 0)
@@ -126,6 +137,7 @@ export default async function DashboardPage() {
         .hello h1{ font-size:30px; }
         .summary{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:24px; }
         .resume{ background:linear-gradient(120deg,var(--ink),#23262e); color:#fff; border-radius:var(--r-lg); padding:28px; display:grid; grid-template-columns:1fr auto; gap:24px; align-items:center; overflow:hidden; position:relative; }
+        @media(max-width:600px){ .resume{ grid-template-columns:1fr; } .resume .btn{ width:100%; justify-content:center; } }
         .resume .glow{ position:absolute; width:300px; height:300px; right:-60px; top:-80px; border-radius:50%; background:radial-gradient(circle,rgba(72,161,254,.4),transparent 70%); }
         .resume .z{ position:relative; }
         .mygrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:18px; }
@@ -153,7 +165,14 @@ export default async function DashboardPage() {
         <div className="summary">
           <div className="stat">
             <div className="lbl">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" strokeWidth="1.8">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--blue)"
+                strokeWidth="1.8"
+              >
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
               </svg>
@@ -168,7 +187,14 @@ export default async function DashboardPage() {
           </div>
           <div className="stat">
             <div className="lbl">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" strokeWidth="1.8">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--blue)"
+                strokeWidth="1.8"
+              >
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7v5l3 2" />
               </svg>
@@ -179,7 +205,14 @@ export default async function DashboardPage() {
           </div>
           <div className="stat">
             <div className="lbl">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" strokeWidth="1.8">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--blue)"
+                strokeWidth="1.8"
+              >
                 <circle cx="12" cy="8" r="6" />
                 <path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5" />
               </svg>
@@ -207,17 +240,27 @@ export default async function DashboardPage() {
                   {resumeCourse.course.title}
                 </h2>
                 <p style={{ color: 'rgba(255,255,255,.65)', fontSize: '14.5px' }}>
-                  {resumeCourse.totalLessons - resumeCourse.completedLessons} aulas restantes para concluir o curso
+                  {resumeCourse.totalLessons - resumeCourse.completedLessons} aulas restantes para
+                  concluir o curso
                 </p>
                 <div
                   className="progress"
-                  style={{ margin: '18px 0 8px', maxWidth: '360px', background: 'rgba(255,255,255,.15)' }}
+                  style={{
+                    margin: '18px 0 8px',
+                    maxWidth: '360px',
+                    background: 'rgba(255,255,255,.15)',
+                  }}
                 >
                   <span style={{ width: `${resumePct}%` }} />
                 </div>
-                <span style={{ color: 'rgba(255,255,255,.6)', fontSize: '13px' }}>{resumePct}% concluído</span>
+                <span style={{ color: 'rgba(255,255,255,.6)', fontSize: '13px' }}>
+                  {resumePct}% concluído
+                </span>
               </div>
-              <Link className="btn btn-primary btn-lg z" href={`/dashboard/curso/${resumeCourse.course.id}`}>
+              <Link
+                className="btn btn-primary btn-lg z"
+                href={`/dashboard/curso/${resumeCourse.course.id}`}
+              >
                 ▶ Continuar
               </Link>
             </div>
@@ -244,10 +287,14 @@ export default async function DashboardPage() {
                     href={`/dashboard/curso/${item.course.id}`}
                   >
                     <div className={`thumb ${getThumbClass(idx)}`}>
-                      {(item.course as CourseRow & { thumbnail_url?: string | null }).thumbnail_url ? (
+                      {(item.course as CourseRow & { thumbnail_url?: string | null })
+                        .thumbnail_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={(item.course as CourseRow & { thumbnail_url?: string | null }).thumbnail_url!}
+                          src={
+                            (item.course as CourseRow & { thumbnail_url?: string | null })
+                              .thumbnail_url!
+                          }
                           alt={item.course.title}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />

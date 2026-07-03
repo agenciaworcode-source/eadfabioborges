@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { createEnrollmentWithAccessWindow } from '@/lib/enrollments/access'
+import { sendEmail } from '@/lib/resend'
+import { MatriculaAdminEmail } from '@/emails/MatriculaAdminEmail'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://ead.fabioborgesoficial.com.br'
 
 const bodySchema = z.object({
   userEmail: z.string().email().optional(),
@@ -18,18 +23,17 @@ interface EnrollRow {
 }
 
 export async function POST(request: Request) {
-  const supabase = createClient()
-
+  // Auth check via user client (respeita JWT)
+  const authClient = createClient()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await authClient.auth.getUser()
 
   if (!user) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   }
 
-  // Verify admin
-  const { data: profileData } = await supabase
+  const { data: profileData } = await authClient
     .from('users')
     .select('role')
     .eq('id', user.id)
@@ -57,13 +61,13 @@ export async function POST(request: Request) {
   const { userEmail, userId: userIdParam, courseId } = parsed.data
 
   if (!userEmail && !userIdParam) {
-    return NextResponse.json(
-      { error: 'Forneça userEmail ou userId' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Forneça userEmail ou userId' }, { status: 400 })
   }
 
-  // Resolve userId from email if needed
+  // Service client bypassa RLS para operações administrativas
+  const supabase = createServiceClient()
+
+  // Resolve userId a partir do e-mail se necessário
   let targetUserId = userIdParam
   if (!targetUserId && userEmail) {
     const { data: userData } = await supabase
@@ -82,7 +86,7 @@ export async function POST(request: Request) {
     targetUserId = found.id
   }
 
-  // Idempotency: check existing enrollment
+  // Idempotência: não duplicar matrícula existente
   const { data: existingData } = await supabase
     .from('enrollments')
     .select('id')
@@ -101,17 +105,42 @@ export async function POST(request: Request) {
     })
   }
 
-  // Create enrollment
-  const enrollmentId = crypto.randomUUID()
-
+  // Criar matrícula usando service client (bypassa RLS)
   const enrollment = await createEnrollmentWithAccessWindow(supabase, {
-    enrollmentId,
     userId: targetUserId!,
     courseId,
   })
 
   if (enrollment.error) {
     return NextResponse.json({ error: enrollment.error }, { status: 500 })
+  }
+
+  // Disparar e-mail de matrícula manual
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('name, email')
+    .eq('id', targetUserId!)
+    .maybeSingle()
+  const { data: courseData } = await supabase
+    .from('courses')
+    .select('title, slug')
+    .eq('id', courseId)
+    .maybeSingle()
+  type ProfileRow = { name: string; email: string }
+  type CourseRow = { title: string; slug: string }
+  const profile = userProfile as unknown as ProfileRow | null
+  const course = courseData as unknown as CourseRow | null
+  if (profile?.email && course) {
+    void sendEmail(
+      profile.email,
+      `Você foi matriculado(a) em "${course.title}"`,
+      MatriculaAdminEmail({
+        name: profile.name ?? profile.email.split('@')[0],
+        courseName: course.title,
+        courseSlug: course.slug,
+        appUrl: APP_URL,
+      })
+    )
   }
 
   return NextResponse.json({

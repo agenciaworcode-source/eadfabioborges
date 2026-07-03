@@ -13,17 +13,28 @@ vi.mock('next/link', () => ({
 
 // Mock lucide-react icons as simple spans
 vi.mock('lucide-react', () => ({
-  ChevronLeft: (props: Record<string, unknown>) => <span data-testid="icon-chevron-left" {...props} />,
+  ChevronLeft: (props: Record<string, unknown>) => (
+    <span data-testid="icon-chevron-left" {...props} />
+  ),
   CheckCircle2: (props: Record<string, unknown>) => <span data-testid="icon-check" {...props} />,
   PlayCircle: (props: Record<string, unknown>) => <span data-testid="icon-play" {...props} />,
   Lock: (props: Record<string, unknown>) => <span data-testid="icon-lock" {...props} />,
-  ClipboardList: (props: Record<string, unknown>) => <span data-testid="icon-clipboard" {...props} />,
+  ClipboardList: (props: Record<string, unknown>) => (
+    <span data-testid="icon-clipboard" {...props} />
+  ),
 }))
 
 // Mock VimeoPlayer
 vi.mock('@/components/player/VimeoPlayer', () => ({
   VimeoPlayer: ({ vimeoId, lessonId }: { vimeoId: string; lessonId: string }) => (
     <div data-testid="vimeo-player" data-vimeo-id={vimeoId} data-lesson-id={lessonId} />
+  ),
+}))
+
+// Mock YouTubePlayer
+vi.mock('@/components/player/YouTubePlayer', () => ({
+  YouTubePlayer: ({ youtubeUrl, lessonId }: { youtubeUrl: string; lessonId: string }) => (
+    <div data-testid="youtube-player" data-youtube-url={youtubeUrl} data-lesson-id={lessonId} />
   ),
 }))
 
@@ -50,6 +61,7 @@ vi.mock('@/hooks/use-progress', () => ({
 
 vi.mock('@/hooks/use-quiz', () => ({
   useQuizByLesson: () => ({ data: null }),
+  useQuizByCourse: () => ({ data: null }),
   useLastAttempt: () => ({ data: null }),
   useSubmitQuiz: () => vi.fn(),
 }))
@@ -65,22 +77,30 @@ import { CoursePlayerLayout } from '@/app/(dashboard)/dashboard/curso/[id]/Cours
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeLessonRow(overrides: Partial<{
-  id: string
-  title: string
-  type: 'video' | 'text' | 'pdf' | 'embed'
-  vimeo_id: string | null
-  content_body: string | null
-  embed_url: string | null
-  pdf_url: string | null
-  duration_secs: number
-  order: number
-}> = {}) {
+function makeLessonRow(
+  overrides: Partial<{
+    id: string
+    title: string
+    type: 'video' | 'text' | 'pdf' | 'embed'
+    vimeo_id: string | null
+    youtube_url: string | null
+    video_thumbnail_url: string | null
+    completion_percent: number
+    content_body: string | null
+    embed_url: string | null
+    pdf_url: string | null
+    duration_secs: number
+    order: number
+  }> = {}
+) {
   return {
     id: overrides.id ?? 'lesson-1',
     title: overrides.title ?? 'Aula teste',
     type: overrides.type ?? 'video',
     vimeo_id: overrides.vimeo_id ?? null,
+    youtube_url: overrides.youtube_url ?? null,
+    video_thumbnail_url: overrides.video_thumbnail_url ?? null,
+    completion_percent: overrides.completion_percent ?? 0,
     content_body: overrides.content_body ?? null,
     embed_url: overrides.embed_url ?? null,
     pdf_url: overrides.pdf_url ?? null,
@@ -124,10 +144,38 @@ describe('CoursePlayerLayout — renderizacao por tipo', () => {
     expect(player).toHaveAttribute('data-vimeo-id', '123456789')
   })
 
-  it('tipo video sem vimeo_id renderiza fallback', () => {
-    renderPlayer(makeLessonRow({ type: 'video', vimeo_id: null }))
+  it('tipo video renderiza YouTubePlayer quando youtube_url esta presente', () => {
+    renderPlayer(
+      makeLessonRow({
+        type: 'video',
+        youtube_url: 'https://www.youtube.com/watch?v=abc123',
+      })
+    )
 
     expect(screen.queryByTestId('vimeo-player')).not.toBeInTheDocument()
+    const player = screen.getByTestId('youtube-player')
+    expect(player).toBeInTheDocument()
+    expect(player).toHaveAttribute('data-youtube-url', 'https://www.youtube.com/watch?v=abc123')
+  })
+
+  it('tipo video prefere YouTubePlayer quando ambos vimeo_id e youtube_url estao presentes', () => {
+    renderPlayer(
+      makeLessonRow({
+        type: 'video',
+        vimeo_id: '111',
+        youtube_url: 'https://youtu.be/abc123',
+      })
+    )
+
+    expect(screen.queryByTestId('vimeo-player')).not.toBeInTheDocument()
+    expect(screen.getByTestId('youtube-player')).toBeInTheDocument()
+  })
+
+  it('tipo video sem vimeo_id nem youtube_url renderiza fallback', () => {
+    renderPlayer(makeLessonRow({ type: 'video', vimeo_id: null, youtube_url: null }))
+
+    expect(screen.queryByTestId('vimeo-player')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('youtube-player')).not.toBeInTheDocument()
     expect(screen.getByText('Video nao configurado')).toBeInTheDocument()
   })
 

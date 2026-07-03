@@ -65,7 +65,9 @@ describe('LessonEditor — campos condicionais por tipo', () => {
     // Other type-specific fields should NOT be visible
     expect(screen.queryByPlaceholderText('https://exemplo.com/arquivo.pdf')).not.toBeInTheDocument()
     expect(screen.queryByPlaceholderText('https://exemplo.com/embed')).not.toBeInTheDocument()
-    expect(screen.queryByPlaceholderText('Escreva o conte\u00fado da aula aqui...')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Escreva o conte\u00fado da aula aqui...')
+    ).not.toBeInTheDocument()
   })
 
   it('tipo Texto exibe textarea content_body e nao exibe Vimeo ID', () => {
@@ -75,7 +77,9 @@ describe('LessonEditor — campos condicionais por tipo', () => {
     fireEvent.click(screen.getByText('TEXTO'))
 
     // Textarea for content should appear
-    expect(screen.getByPlaceholderText('Escreva o conte\u00fado da aula aqui...')).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText('Escreva o conte\u00fado da aula aqui...')
+    ).toBeInTheDocument()
 
     // Vimeo ID should NOT be visible
     expect(screen.queryByPlaceholderText('Ex: 123456789')).not.toBeInTheDocument()
@@ -92,7 +96,9 @@ describe('LessonEditor — campos condicionais por tipo', () => {
 
     // Other type fields should NOT be visible
     expect(screen.queryByPlaceholderText('Ex: 123456789')).not.toBeInTheDocument()
-    expect(screen.queryByPlaceholderText('Escreva o conte\u00fado da aula aqui...')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Escreva o conte\u00fado da aula aqui...')
+    ).not.toBeInTheDocument()
   })
 
   it('tipo Embed exibe campo embed_url e preview quando URL preenchida', () => {
@@ -102,7 +108,7 @@ describe('LessonEditor — campos condicionais por tipo', () => {
     fireEvent.click(screen.getByText('EMBED'))
 
     // Embed URL input should appear
-    const embedInput = screen.getByPlaceholderText('https://exemplo.com/embed')
+    const embedInput = screen.getByPlaceholderText(/Cole a URL ou/i)
     expect(embedInput).toBeInTheDocument()
 
     // No preview iframe yet (empty URL)

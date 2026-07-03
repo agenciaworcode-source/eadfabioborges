@@ -2,6 +2,7 @@ import type { CheckoutProvider } from './types'
 import { stubProvider } from './providers/stub'
 import { stripeProvider } from './providers/stripe'
 import { mercadoPagoProvider } from './providers/mercadopago'
+import { pagarmeProvider } from './providers/pagarme'
 
 /**
  * Retorna o provider de checkout configurado via env CHECKOUT_PROVIDER.
@@ -22,6 +23,8 @@ export function getCheckoutProvider(): CheckoutProvider {
       return stripeProvider
     case 'mercadopago':
       return mercadoPagoProvider
+    case 'pagarme':
+      return pagarmeProvider
     // case 'hotmart':
     //   return hotmartProvider // import from './providers/hotmart'
     default:

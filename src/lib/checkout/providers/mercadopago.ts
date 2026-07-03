@@ -2,6 +2,7 @@ import { MercadoPagoConfig, Preference } from 'mercadopago'
 import type {
   CheckoutProvider,
   CheckoutSession,
+  CreateCartCheckoutParams,
   CreateCourseCheckoutParams,
   CreatePlanCheckoutParams,
 } from '../types'
@@ -14,9 +15,7 @@ function getMpClient(): MercadoPagoConfig {
 }
 
 export const mercadoPagoProvider: CheckoutProvider = {
-  async createCourseCheckout(
-    params: CreateCourseCheckoutParams,
-  ): Promise<CheckoutSession> {
+  async createCourseCheckout(params: CreateCourseCheckoutParams): Promise<CheckoutSession> {
     const preference = new Preference(getMpClient())
     const result = await preference.create({
       body: {
@@ -41,9 +40,7 @@ export const mercadoPagoProvider: CheckoutProvider = {
     return { url: result.init_point! }
   },
 
-  async createPlanCheckout(
-    params: CreatePlanCheckoutParams,
-  ): Promise<CheckoutSession> {
+  async createPlanCheckout(params: CreatePlanCheckoutParams): Promise<CheckoutSession> {
     // MercadoPago não tem subscription nativa — pagamento único pelo valor do período
     const unitPrice =
       params.billingPeriod === 'annual'
@@ -66,6 +63,31 @@ export const mercadoPagoProvider: CheckoutProvider = {
         ],
         payer: { email: params.userEmail },
         external_reference: `plan:${params.planId}:${params.userId}:${params.billingPeriod}`,
+        redirect_urls: {
+          success: params.successUrl,
+          failure: params.cancelUrl,
+          pending: params.successUrl,
+        },
+      },
+    })
+    return { url: result.init_point! }
+  },
+
+  async createCartCheckout(params: CreateCartCheckoutParams): Promise<CheckoutSession> {
+    const preference = new Preference(getMpClient())
+    const result = await preference.create({
+      body: {
+        items: params.courses.map((course) => ({
+          id: course.courseId,
+          title: course.courseTitle,
+          quantity: 1,
+          unit_price: course.priceAmountCents / 100,
+          currency_id: 'BRL',
+        })),
+        payer: { email: params.userEmail },
+        external_reference: `cart:${params.userId}:${params.courses
+          .map((course) => course.courseId)
+          .join(',')}`,
         redirect_urls: {
           success: params.successUrl,
           failure: params.cancelUrl,

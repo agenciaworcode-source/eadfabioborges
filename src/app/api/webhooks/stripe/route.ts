@@ -30,25 +30,15 @@ export async function POST(request: Request) {
   try {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session
-      const { type, userId, courseId, planId, billingPeriod } = session.metadata ?? {}
+      const { type, userId, courseId, courseIds, planId, billingPeriod } = session.metadata ?? {}
 
       if (type === 'course' && userId && courseId) {
-        const { data: existing } = await supabase
-          .from('enrollments')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('course_id', courseId)
-          .maybeSingle()
+        await activateCourseEnrollment(userId, courseId)
+      }
 
-        if (!existing) {
-          const enrollment = await createEnrollmentWithAccessWindow(supabase, {
-            userId,
-            courseId,
-          })
-
-          if (enrollment.error) {
-            throw new Error(enrollment.error)
-          }
+      if (type === 'cart' && userId) {
+        for (const cartCourseId of parseCourseIds(courseIds)) {
+          await activateCourseEnrollment(userId, cartCourseId)
         }
       }
 
@@ -124,4 +114,40 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ received: true })
+}
+
+function parseCourseIds(raw: string | undefined): string[] {
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : []
+  } catch {
+    return raw
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+}
+
+async function activateCourseEnrollment(userId: string, courseId: string) {
+  const supabase = createServiceClient()
+  const { data: existing } = await supabase
+    .from('enrollments')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('course_id', courseId)
+    .maybeSingle()
+
+  if (existing) return
+
+  const enrollment = await createEnrollmentWithAccessWindow(supabase, {
+    userId,
+    courseId,
+  })
+
+  if (enrollment.error) {
+    throw new Error(enrollment.error)
+  }
 }

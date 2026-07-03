@@ -6,6 +6,8 @@
 .env.*.local
 *.key
 *.pem
+# Arquivo com credenciais do Supabase Cloud — NUNCA versionar
+supabasecloud.md
 
 # Dependencies (AIOX)
 node_modules/
@@ -15,6 +17,8 @@ node_modules
 .next/
 .next-build/
 .next-dev/
+playwright/.cache/
+test-results/
 dist/
 build/
 tsconfig.tsbuildinfo
@@ -31,3 +35,6 @@ Thumbs.db
 .aiox-core/local/
 .claude/settings.local.json
 .aiox/install-log.txt
+
+.vercel
+.env*

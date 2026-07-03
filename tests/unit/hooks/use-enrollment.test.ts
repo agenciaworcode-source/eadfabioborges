@@ -18,11 +18,11 @@ vi.mock('@/lib/supabase/client', () => ({
 /**
  * Configura mockFrom para simular as duas queries (enrollment + subscription).
  *
- * Enrollment chain: select → eq → eq → in  (in resolve)
+ * Enrollment chain: select → eq → eq → in → maybeSingle
  * Subscription chain: select → eq → eq → gt  (gt resolve)
  */
 function setupFromMock(
-  enrollmentRows: { status: string }[],
+  enrollmentRow: { status: string; expires_at: string | null } | null,
   subscriptionRows: { status: string; period_end: string }[]
 ) {
   let callIndex = 0
@@ -31,11 +31,12 @@ function setupFromMock(
     callIndex++
 
     if (isEnrollment) {
-      // Enrollment: termina em .in()
+      // Enrollment: termina em .maybeSingle()
       return {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        in: vi.fn().mockResolvedValue({ data: enrollmentRows, error: null }),
+        in: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: enrollmentRow, error: null }),
         gt: vi.fn().mockReturnThis(),
       }
     } else {
@@ -52,28 +53,31 @@ function setupFromMock(
 
 /** Executa a lógica central do hook diretamente (sem renderizar componente React) */
 async function resolveAccess(
-  enrollmentRows: { status: string }[],
+  enrollmentRow: { status: string; expires_at: string | null } | null,
   subscriptionRows: { status: string; period_end: string }[]
-): Promise<boolean> {
+): Promise<{ hasAccess: boolean; expiresAt: string | null; isExpired: boolean }> {
   mockGetUser.mockResolvedValueOnce({
     data: { user: { id: 'user-123' } },
     error: null,
   })
-  setupFromMock(enrollmentRows, subscriptionRows)
+  setupFromMock(enrollmentRow, subscriptionRows)
 
   const supabase = (await import('@/lib/supabase/client')).createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return false
+  if (!user) {
+    return { hasAccess: false, expiresAt: null, isExpired: false }
+  }
 
   const [{ data: enrollments }, { data: subscriptions }] = await Promise.all([
     supabase
       .from('enrollments')
-      .select('status')
+      .select('status, expires_at')
       .eq('user_id', user.id)
       .eq('course_id', 'course-abc')
-      .in('status', ['active', 'completed']),
+      .in('status', ['active', 'completed', 'expired'])
+      .maybeSingle(),
     supabase
       .from('subscriptions')
       .select('status, period_end')
@@ -82,11 +86,20 @@ async function resolveAccess(
       .gt('period_end', new Date().toISOString()),
   ])
 
-  return (
-    ((enrollments as { status: string }[] | null)?.length ?? 0) > 0 ||
-    ((subscriptions as { status: string; period_end: string }[] | null)
-      ?.length ?? 0) > 0
-  )
+  const enrollment = enrollments as { status: string; expires_at: string | null } | null
+  const expiresAt = enrollment?.expires_at ?? null
+  const isExpired =
+    enrollment?.status === 'expired' || (expiresAt ? new Date(expiresAt) < new Date() : false)
+
+  return {
+    hasAccess:
+      (!!enrollment &&
+        !isExpired &&
+        (enrollment.status === 'active' || enrollment.status === 'completed')) ||
+      ((subscriptions as { status: string; period_end: string }[] | null)?.length ?? 0) > 0,
+    expiresAt,
+    isExpired,
+  }
 }
 
 // ─── Testes ───────────────────────────────────────────────────────────────────
@@ -98,40 +111,43 @@ describe('useEnrollment — lógica de acesso', () => {
   })
 
   it('hasAccess: true para enrollment com status active', async () => {
-    const hasAccess = await resolveAccess([{ status: 'active' }], [])
-    expect(hasAccess).toBe(true)
+    const state = await resolveAccess({ status: 'active', expires_at: null }, [])
+    expect(state.hasAccess).toBe(true)
+    expect(state.expiresAt).toBeNull()
+    expect(state.isExpired).toBe(false)
   })
 
   it('hasAccess: true para enrollment com status completed', async () => {
-    const hasAccess = await resolveAccess([{ status: 'completed' }], [])
-    expect(hasAccess).toBe(true)
+    const state = await resolveAccess({ status: 'completed', expires_at: null }, [])
+    expect(state.hasAccess).toBe(true)
   })
 
   it('hasAccess: true para subscription active com period_end futuro', async () => {
-    const futureDate = new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000
-    ).toISOString()
-    const hasAccess = await resolveAccess(
-      [],
-      [{ status: 'active', period_end: futureDate }]
-    )
-    expect(hasAccess).toBe(true)
+    const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    const state = await resolveAccess(null, [{ status: 'active', period_end: futureDate }])
+    expect(state.hasAccess).toBe(true)
   })
 
   it('hasAccess: false sem enrollment nem subscription', async () => {
-    const hasAccess = await resolveAccess([], [])
-    expect(hasAccess).toBe(false)
+    const state = await resolveAccess(null, [])
+    expect(state.hasAccess).toBe(false)
   })
 
   it('hasAccess: false para enrollment cancelled (filtrado pelo IN no banco)', async () => {
-    // O .in('status', ['active','completed']) garante que o banco retorna []
-    const hasAccess = await resolveAccess([], [])
-    expect(hasAccess).toBe(false)
+    const state = await resolveAccess(null, [])
+    expect(state.hasAccess).toBe(false)
   })
 
   it('hasAccess: false para subscription cancelled (filtrado pelo eq status=active)', async () => {
-    // O .eq('status','active') garante que o banco retorna []
-    const hasAccess = await resolveAccess([], [])
-    expect(hasAccess).toBe(false)
+    const state = await resolveAccess(null, [])
+    expect(state.hasAccess).toBe(false)
+  })
+
+  it('isExpired: true para enrollment com expires_at no passado', async () => {
+    const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const state = await resolveAccess({ status: 'active', expires_at: pastDate }, [])
+    expect(state.isExpired).toBe(true)
+    expect(state.expiresAt).toBe(pastDate)
+    expect(state.hasAccess).toBe(false)
   })
 })

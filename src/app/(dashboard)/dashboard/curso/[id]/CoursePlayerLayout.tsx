@@ -11,11 +11,14 @@ import {
   ClipboardList,
 } from 'lucide-react'
 import { VimeoPlayer } from '@/components/player/VimeoPlayer'
+import { YouTubePlayer } from '@/components/player/YouTubePlayer'
+import { FinalAssessmentPanel } from '@/components/player/FinalAssessmentPanel'
 import { Quiz } from '@/components/quiz/Quiz'
 import { QuizResult } from '@/components/quiz/QuizResult'
 import { useCourseProgress, useSaveProgress } from '@/hooks/use-progress'
 import {
   useQuizByLesson,
+  useQuizByCourse,
   useLastAttempt,
   useSubmitQuiz,
   type SubmitResult,
@@ -28,6 +31,9 @@ interface LessonRow {
   title: string
   type: 'video' | 'text' | 'pdf' | 'embed'
   vimeo_id: string | null
+  youtube_url: string | null
+  video_thumbnail_url: string | null
+  completion_percent: number
   content_body: string | null
   embed_url: string | null
   pdf_url: string | null
@@ -69,6 +75,9 @@ function FallbackContent({ message }: { message: string }) {
   )
 }
 
+// MÓDULO DESATIVADO — Avaliações/Quiz (desativado sem apagar)
+const QUIZ_ENABLED = false
+
 export function CoursePlayerLayout({
   courseId,
   courseTitle,
@@ -77,16 +86,10 @@ export function CoursePlayerLayout({
 }: CoursePlayerLayoutProps) {
   const { data: progressData } = useCourseProgress(courseId)
   const saveProgress = useSaveProgress(courseId)
-  const lessons = useMemo(
-    () => progressData?.lessons ?? {},
-    [progressData?.lessons]
-  )
+  const lessons = useMemo(() => progressData?.lessons ?? {}, [progressData?.lessons])
 
   const allLessons = useMemo(
-    () =>
-      modules
-        .flatMap((m) => m.lessons ?? [])
-        .sort((a, b) => a.order - b.order),
+    () => modules.flatMap((m) => m.lessons ?? []).sort((a, b) => a.order - b.order),
     [modules]
   )
 
@@ -95,33 +98,42 @@ export function CoursePlayerLayout({
     [allLessons, lessons]
   )
 
-  const [selectedLessonId, setSelectedLessonId] = useState<string>(
-    firstLesson?.id ?? ''
-  )
+  const [selectedLessonId, setSelectedLessonId] = useState<string>(firstLesson?.id ?? '')
   const [quizResult, setQuizResult] = useState<SubmitResult | null>(null)
+  const [finalQuizResult, setFinalQuizResult] = useState<SubmitResult | null>(null)
+  const [isRetrying, setIsRetrying] = useState(false)
+  const [isFinalRetrying, setIsFinalRetrying] = useState(false)
   const [isSubmittingQuiz, setIsSubmittingQuiz] = useState(false)
+  const [isSubmittingFinalQuiz, setIsSubmittingFinalQuiz] = useState(false)
 
   const selectedLesson = allLessons.find((l) => l.id === selectedLessonId)
 
   const totalLessons = allLessons.length
   const completedCount = allLessons.filter((l) => lessons[l.id]?.completed).length
-  const progressPct =
-    totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0
+  const progressPct = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0
 
   const currentIndex = allLessons.findIndex((l) => l.id === selectedLessonId)
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null
-  const nextLesson =
-    currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
+  const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
 
   // Quiz da aula selecionada
   const { data: quizData } = useQuizByLesson(selectedLessonId)
   const quiz = quizData?.quiz ?? null
+  const { data: finalQuizData } = useQuizByCourse(courseId)
+  const finalQuiz = finalQuizData?.quiz ?? null
 
   // Última tentativa
   const { data: attemptData } = useLastAttempt(quiz?.id)
   const lastAttempt = attemptData?.attempt ?? null
   const attemptsUsed = attemptData?.attemptsUsed ?? 0
   const attemptsRemaining = quiz ? Math.max(0, quiz.attempts_allowed - attemptsUsed) : 0
+
+  const { data: finalAttemptData } = useLastAttempt(finalQuiz?.id)
+  const finalLastAttempt = finalAttemptData?.attempt ?? null
+  const finalAttemptsUsed = finalAttemptData?.attemptsUsed ?? 0
+  const finalAttemptsRemaining = finalQuiz
+    ? Math.max(0, finalQuiz.attempts_allowed - finalAttemptsUsed)
+    : 0
 
   const submitQuiz = useSubmitQuiz()
 
@@ -146,6 +158,7 @@ export function CoursePlayerLayout({
   function selectLesson(id: string) {
     setSelectedLessonId(id)
     setQuizResult(null)
+    setIsRetrying(false)
 
     const lesson = allLessons.find((l) => l.id === id)
     const lessonType = lesson?.type ?? 'video'
@@ -159,22 +172,52 @@ export function CoursePlayerLayout({
     setIsSubmittingQuiz(true)
     try {
       const result = await submitQuiz(quiz.id, selectedLessonId, answers)
+      setIsRetrying(false)
       setQuizResult(result)
     } finally {
       setIsSubmittingQuiz(false)
     }
   }
 
+  async function handleFinalQuizSubmit(answers: Record<string, string>) {
+    if (!finalQuiz) return
+    setIsSubmittingFinalQuiz(true)
+    try {
+      const result = await submitQuiz(finalQuiz.id, undefined, answers)
+      setIsFinalRetrying(false)
+      setFinalQuizResult(result)
+    } finally {
+      setIsSubmittingFinalQuiz(false)
+    }
+  }
+
   // Resultado a exibir: resultado local (recém submetido) ou última tentativa persistida
-  const displayResult: SubmitResult | null = quizResult ?? (lastAttempt
-    ? {
-        score: lastAttempt.score,
-        passed: lastAttempt.passed,
-        attemptsUsed,
-        attemptsAllowed: quiz?.attempts_allowed ?? 1,
-        correctAnswers: undefined,
-      }
-    : null)
+  // isRetrying=true força exibir o formulário mesmo que exista lastAttempt
+  const displayResult: SubmitResult | null = isRetrying
+    ? null
+    : (quizResult ??
+      (lastAttempt
+        ? {
+            score: lastAttempt.score,
+            passed: lastAttempt.passed,
+            attemptsUsed,
+            attemptsAllowed: quiz?.attempts_allowed ?? 1,
+            correctAnswers: undefined,
+          }
+        : null))
+
+  const finalDisplayResult: SubmitResult | null = isFinalRetrying
+    ? null
+    : (finalQuizResult ??
+      (finalLastAttempt
+        ? {
+            score: finalLastAttempt.score,
+            passed: finalLastAttempt.passed,
+            attemptsUsed: finalAttemptsUsed,
+            attemptsAllowed: finalQuiz?.attempts_allowed ?? 1,
+            correctAnswers: undefined,
+          }
+        : null))
 
   // Determinar se aula tem quiz pendente (tem quiz, não passou ainda)
   const lessonHasPendingQuiz = (lessonId: string) => {
@@ -208,7 +251,7 @@ export function CoursePlayerLayout({
 
       {/* Grid: main + rail */}
       <div
-        className="grid flex-1"
+        className="player-grid grid flex-1"
         style={{ gridTemplateColumns: '1fr 360px', minHeight: 'calc(100vh - 60px)' }}
       >
         {/* Main */}
@@ -219,6 +262,23 @@ export function CoursePlayerLayout({
               const lessonType = selectedLesson.type ?? 'video'
               switch (lessonType) {
                 case 'video':
+                  if (selectedLesson.youtube_url) {
+                    return (
+                      <YouTubePlayer
+                        key={selectedLesson.id}
+                        youtubeUrl={selectedLesson.youtube_url}
+                        lessonId={selectedLesson.id}
+                        courseId={courseId}
+                        durationSecs={selectedLesson.duration_secs}
+                        completionPercent={selectedLesson.completion_percent}
+                        thumbnailUrl={selectedLesson.video_thumbnail_url}
+                        initialWatchedSecs={lessons[selectedLesson.id]?.watchedSecs ?? 0}
+                        onComplete={() => {
+                          if (nextLesson) selectLesson(nextLesson.id)
+                        }}
+                      />
+                    )
+                  }
                   if (!selectedLesson.vimeo_id) {
                     return <FallbackContent message="Video nao configurado" />
                   }
@@ -257,9 +317,18 @@ export function CoursePlayerLayout({
                       title={selectedLesson.title}
                     />
                   )
-                case 'embed':
+                case 'embed': {
                   if (!selectedLesson.embed_url) {
                     return <FallbackContent message="Conteudo indisponivel" />
+                  }
+                  const isHtml = selectedLesson.embed_url.trimStart().startsWith('<')
+                  if (isHtml) {
+                    return (
+                      <div
+                        className="w-full"
+                        dangerouslySetInnerHTML={{ __html: selectedLesson.embed_url }}
+                      />
+                    )
                   }
                   return (
                     <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
@@ -272,6 +341,7 @@ export function CoursePlayerLayout({
                       />
                     </div>
                   )
+                }
                 default:
                   return <FallbackContent message="Tipo de aula desconhecido" />
               }
@@ -280,8 +350,7 @@ export function CoursePlayerLayout({
             <div
               className="flex aspect-video items-center justify-center"
               style={{
-                background:
-                  'radial-gradient(120% 120% at 50% 40%, #1b2740, #0a0e16)',
+                background: 'radial-gradient(120% 120% at 50% 40%, #1b2740, #0a0e16)',
               }}
             >
               {!hasAccess ? (
@@ -320,9 +389,7 @@ export function CoursePlayerLayout({
                       {selectedLesson.duration_secs > 0
                         ? `${formatMins(selectedLesson.duration_secs)} · `
                         : ''}
-                      {lessons[selectedLesson.id]?.completed
-                        ? 'Concluída'
-                        : 'Em andamento'}
+                      {lessons[selectedLesson.id]?.completed ? 'Concluída' : 'Em andamento'}
                     </p>
                   </div>
                   {lessons[selectedLesson.id]?.completed && (
@@ -362,28 +429,24 @@ export function CoursePlayerLayout({
                 </div>
               </div>
 
-              {/* Seção de Quiz */}
-              {quiz && (
+              {/* Seção de Quiz — DESATIVADA (QUIZ_ENABLED = false) */}
+              {QUIZ_ENABLED && quiz && (
                 <>
                   {displayResult ? (
                     <QuizResult
                       result={displayResult}
                       attemptsRemaining={
                         quizResult
-                          ? Math.max(
-                              0,
-                              quizResult.attemptsAllowed - quizResult.attemptsUsed
-                            )
+                          ? Math.max(0, quizResult.attemptsAllowed - quizResult.attemptsUsed)
                           : attemptsRemaining
                       }
-                      onRetry={() => setQuizResult(null)}
+                      onRetry={() => {
+                        setQuizResult(null)
+                        setIsRetrying(true)
+                      }}
                     />
                   ) : (
-                    <Quiz
-                      quiz={quiz}
-                      onSubmit={handleQuizSubmit}
-                      isSubmitting={isSubmittingQuiz}
-                    />
+                    <Quiz quiz={quiz} onSubmit={handleQuizSubmit} isSubmitting={isSubmittingQuiz} />
                   )}
                 </>
               )}
@@ -395,6 +458,27 @@ export function CoursePlayerLayout({
                   submission={submission}
                   onUpload={handleUpload}
                   isUploading={isUploading}
+                />
+              )}
+
+              {/* FinalAssessmentPanel — DESATIVADO (QUIZ_ENABLED = false) */}
+              {QUIZ_ENABLED && (
+                <FinalAssessmentPanel
+                  quiz={finalQuiz}
+                  completedLessons={completedCount}
+                  totalLessons={totalLessons}
+                  result={finalDisplayResult}
+                  attemptsRemaining={
+                    finalQuizResult
+                      ? Math.max(0, finalQuizResult.attemptsAllowed - finalQuizResult.attemptsUsed)
+                      : finalAttemptsRemaining
+                  }
+                  isSubmitting={isSubmittingFinalQuiz}
+                  onSubmit={handleFinalQuizSubmit}
+                  onRetry={() => {
+                    setFinalQuizResult(null)
+                    setIsFinalRetrying(true)
+                  }}
                 />
               )}
             </div>
@@ -436,9 +520,7 @@ export function CoursePlayerLayout({
 
           {/* Modules + lessons */}
           {modules.map((mod) => {
-            const sortedLessons = [...(mod.lessons ?? [])].sort(
-              (a, b) => a.order - b.order
-            )
+            const sortedLessons = [...(mod.lessons ?? [])].sort((a, b) => a.order - b.order)
             return (
               <div key={mod.id}>
                 <div
@@ -452,7 +534,7 @@ export function CoursePlayerLayout({
                   const isCompleted = prog?.completed ?? false
                   const isSelected = lesson.id === selectedLessonId
                   const isInProgress = !isCompleted && (prog?.watchedSecs ?? 0) > 0
-                  const hasPendingQuiz = lessonHasPendingQuiz(lesson.id)
+                  const hasPendingQuiz = QUIZ_ENABLED && lessonHasPendingQuiz(lesson.id)
 
                   return (
                     <button
@@ -462,9 +544,7 @@ export function CoursePlayerLayout({
                       style={{
                         color: isSelected ? '#fff' : '#aeb4be',
                         background: isSelected ? '#16181d' : 'transparent',
-                        borderLeft: isSelected
-                          ? '2px solid #48a1fe'
-                          : '2px solid transparent',
+                        borderLeft: isSelected ? '2px solid #48a1fe' : '2px solid transparent',
                       }}
                     >
                       {/* Ícone de estado */}
@@ -474,17 +554,17 @@ export function CoursePlayerLayout({
                           background: isCompleted
                             ? 'rgba(43,191,106,.18)'
                             : hasPendingQuiz
-                            ? 'rgba(255,179,0,.15)'
-                            : isInProgress || isSelected
-                            ? 'rgba(72,161,254,.2)'
-                            : '#1d2026',
+                              ? 'rgba(255,179,0,.15)'
+                              : isInProgress || isSelected
+                                ? 'rgba(72,161,254,.2)'
+                                : '#1d2026',
                           color: isCompleted
                             ? '#3fd17f'
                             : hasPendingQuiz
-                            ? '#ffb300'
-                            : isInProgress || isSelected
-                            ? '#48a1fe'
-                            : '#6a707a',
+                              ? '#ffb300'
+                              : isInProgress || isSelected
+                                ? '#48a1fe'
+                                : '#6a707a',
                         }}
                       >
                         {isCompleted ? (

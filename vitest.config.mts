@@ -9,7 +9,7 @@ export default defineConfig({
     globals: true,
     pool: 'threads',
     include: ['src/**/*.{test,spec}.{ts,tsx}', 'tests/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['.aiox-core/**', 'node_modules/**'],
+    exclude: ['.aiox-core/**', 'node_modules/**', 'tests/e2e/**', 'tests/app/**'],
   },
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },

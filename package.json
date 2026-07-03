@@ -11,6 +11,8 @@
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "test": "vitest run --passWithNoTests",
+    "test:e2e": "playwright test -c playwright-ct.config.ts",
+    "test:app": "playwright test -c playwright.config.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -49,6 +51,8 @@
     ]
   },
   "devDependencies": {
+    "@playwright/experimental-ct-react": "^1.61.0",
+    "@playwright/test": "^1.61.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

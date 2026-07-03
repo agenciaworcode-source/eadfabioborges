@@ -48,8 +48,18 @@ export default function RecuperarSenhaPage() {
       `}</style>
       <div className="rc-wrap">
         <div className="rc">
-          <Link className="logo" href="/" style={{ justifyContent: 'center', marginBottom: '26px' }}>
-            <Image src="/mb-logo.png" alt="MB" width={30} height={30} style={{ height: '30px', width: 'auto' }} />
+          <Link
+            className="logo"
+            href="/"
+            style={{ justifyContent: 'center', marginBottom: '26px' }}
+          >
+            <Image
+              src="/mb-logo.png"
+              alt="MB"
+              width={30}
+              height={30}
+              style={{ height: '30px', width: 'auto' }}
+            />
             <span className="lk">
               <b>Fábio Borges</b>
               <span>Mentoria Profissional em Estética</span>
@@ -59,7 +69,14 @@ export default function RecuperarSenhaPage() {
           {success ? (
             <div className="card">
               <div className="ic-top ok">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                <svg
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                >
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <path d="m22 4-10 10.01-3-3" />
                 </svg>
@@ -67,7 +84,8 @@ export default function RecuperarSenhaPage() {
               <h1 style={{ fontSize: '24px', textAlign: 'center' }}>Verifique seu e-mail</h1>
               <p className="muted center" style={{ margin: '10px 0 22px', fontSize: '14.5px' }}>
                 Enviamos um link de recuperação para{' '}
-                <b style={{ color: 'var(--ink)' }}>{submittedEmail}</b>. Confira a caixa de entrada e o spam.
+                <b style={{ color: 'var(--ink)' }}>{submittedEmail}</b>. Confira a caixa de entrada
+                e o spam.
               </p>
               <Link className="btn btn-ghost btn-block" href="/auth/login">
                 Voltar para o login
@@ -77,7 +95,14 @@ export default function RecuperarSenhaPage() {
                 <button
                   onClick={() => setSuccess(false)}
                   className="blue"
-                  style={{ background: 'none', border: 'none', padding: 0, fontWeight: 600, cursor: 'pointer', fontSize: '13px' }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                  }}
                 >
                   Reenviar
                 </button>
@@ -86,7 +111,14 @@ export default function RecuperarSenhaPage() {
           ) : (
             <div className="card">
               <div className="ic-top">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <svg
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                >
                   <rect x="3" y="11" width="18" height="11" rx="2" />
                   <path d="M7 11V7a5 5 0 0 1 9.9-1" />
                 </svg>
@@ -95,11 +127,18 @@ export default function RecuperarSenhaPage() {
               <p className="muted center" style={{ margin: '10px 0 24px', fontSize: '14.5px' }}>
                 Digite o seu e-mail e enviaremos um link para redefinir a sua senha.
               </p>
-              <form className="col gap16" onSubmit={handleSubmit(onSubmit)}>
+              <form className="col gap16" noValidate onSubmit={handleSubmit(onSubmit)}>
                 <div className="field">
                   <label htmlFor="email">E-mail</label>
                   <div className="input-icn">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <svg
+                      width="17"
+                      height="17"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
                       <rect x="2" y="4" width="20" height="16" rx="2" />
                       <path d="m22 7-10 5L2 7" />
                     </svg>
@@ -113,10 +152,16 @@ export default function RecuperarSenhaPage() {
                     />
                   </div>
                   {errors.email && (
-                    <span style={{ color: '#d23b3b', fontSize: '13px' }}>{errors.email.message}</span>
+                    <span style={{ color: '#d23b3b', fontSize: '13px' }}>
+                      {errors.email.message}
+                    </span>
                   )}
                 </div>
-                <button type="submit" disabled={isSubmitting} className="btn btn-primary btn-lg btn-block">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn btn-primary btn-lg btn-block"
+                >
                   {isSubmitting ? 'Enviando...' : 'Enviar link de recuperação'}
                 </button>
               </form>

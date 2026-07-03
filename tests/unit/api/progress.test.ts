@@ -5,6 +5,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const mockUpsert = vi.fn()
 const mockGetUser = vi.fn()
+const mockServiceFrom = vi.fn().mockReturnValue({
+  select: vi.fn().mockReturnValue({
+    eq: vi.fn().mockReturnValue({
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    }),
+  }),
+})
 
 // mockFrom retorna objeto com encadeamento para upsert
 const mockFrom = vi.fn().mockReturnValue({
@@ -15,6 +22,12 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: () => ({
     auth: { getUser: mockGetUser },
     from: mockFrom,
+  }),
+}))
+
+vi.mock('@/lib/supabase/service', () => ({
+  createServiceClient: () => ({
+    from: mockServiceFrom,
   }),
 }))
 

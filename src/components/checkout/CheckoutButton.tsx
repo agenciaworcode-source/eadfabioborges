@@ -1,11 +1,13 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
+import { addCourseToCart, setPlanCart } from '@/lib/cart/client'
 
 interface CheckoutButtonProps {
   label: string
-  courseId?: string      // UUID do curso — usado na API de checkout
-  courseSlug?: string    // slug do curso — usado no redirect de login
+  courseId?: string
+  courseSlug?: string
   planId?: string
   billingPeriod?: 'monthly' | 'annual'
   className?: string
@@ -19,65 +21,67 @@ export function CheckoutButton({
   billingPeriod = 'monthly',
   className,
 }: CheckoutButtonProps) {
-  const [loading, setLoading] = useState(false)
+  const [added, setAdded] = useState(false)
 
-  async function handleClick() {
-    setLoading(true)
-    try {
-      let res: Response
-      if (courseId) {
-        res = await fetch('/api/checkout/curso', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ courseId }),
-        })
-      } else if (planId) {
-        res = await fetch('/api/checkout/plano', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ planId, billingPeriod }),
-        })
-      } else {
-        window.location.href = '/auth/login'
-        return
-      }
+  function handleClick() {
+    if (courseId) {
+      addCourseToCart({ courseId, courseSlug })
+      setAdded(true)
+      return
+    }
 
-      if (res.status === 401) {
-        // Não autenticado — redireciona para login com return URL
-        const returnPath = courseSlug
-          ? `/cursos/${courseSlug}`
-          : planId
-          ? '/planos'
-          : '/'
-        window.location.href = `/auth/login?returnUrl=${encodeURIComponent(returnPath)}`
-        return
-      }
-
-      if (!res.ok) {
-        const data = (await res.json()) as { error?: string }
-        console.error('[checkout] error:', data.error)
-        setLoading(false)
-        return
-      }
-
-      const data = (await res.json()) as { url?: string }
-      if (data.url) {
-        window.location.href = data.url
-      }
-    } catch (err) {
-      console.error('[checkout] unexpected error:', err)
-      setLoading(false)
+    if (planId) {
+      setPlanCart({ planId, billingPeriod })
+      window.location.href = '/checkout/carrinho'
     }
   }
 
+  if (added) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdf4',
+            border: '1px solid #86efac',
+            borderRadius: '10px',
+            padding: '12px 16px',
+            color: '#166534',
+            fontWeight: '600',
+            fontSize: '14px',
+          }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          Adicionado ao carrinho!
+        </div>
+        <Link href="/checkout/carrinho" className="btn btn-primary btn-block">
+          Ir para o carrinho
+        </Link>
+        <button
+          onClick={() => setAdded(false)}
+          className="btn btn-ghost btn-block"
+          style={{ fontSize: '13px' }}
+        >
+          Continuar comprando
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <button
-      onClick={handleClick}
-      disabled={loading}
-      className={className ?? 'btn btn-primary btn-block'}
-      style={loading ? { opacity: 0.7, cursor: 'wait' } : undefined}
-    >
-      {loading ? 'Aguarde...' : label}
+    <button onClick={handleClick} className={className ?? 'btn btn-primary btn-block'}>
+      {label}
     </button>
   )
 }

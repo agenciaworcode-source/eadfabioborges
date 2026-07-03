@@ -6,6 +6,9 @@ interface LessonRaw {
   title: string
   type: 'video' | 'text' | 'pdf' | 'embed'
   vimeo_id: string | null
+  youtube_url: string | null
+  video_thumbnail_url: string | null
+  completion_percent: number
   content_body: string | null
   embed_url: string | null
   pdf_url: string | null
@@ -50,12 +53,14 @@ export default async function AdminCursosPage({ searchParams }: AdminCursosPageP
 
   const { data: coursesData, error: coursesError } = await supabase
     .from('courses')
-    .select(`
+    .select(
+      `
       id, slug, title, description, price, published, is_vip, thumbnail_url, level, category, access_type, certificate_enabled, access_days,
       modules(id, title, order, is_free_preview,
-        lessons(id, title, type, vimeo_id, embed_url, pdf_url, duration_secs, order, is_free_preview)
+        lessons(id, title, type, vimeo_id, youtube_url, video_thumbnail_url, completion_percent, embed_url, pdf_url, duration_secs, order, is_free_preview)
       )
-    `)
+    `
+    )
     .order('title')
 
   if (coursesError) {
@@ -103,10 +108,11 @@ export default async function AdminCursosPage({ searchParams }: AdminCursosPageP
     moduleCount: c.modules?.length ?? 0,
     lessonCount: c.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? 0,
     enrollmentCount: enrollMap[c.id] ?? 0,
-    totalDurationSecs: c.modules?.reduce(
-      (sum, m) => sum + m.lessons?.reduce((s, l) => s + (l.duration_secs ?? 0), 0),
-      0
-    ) ?? 0,
+    totalDurationSecs:
+      c.modules?.reduce(
+        (sum, m) => sum + m.lessons?.reduce((s, l) => s + (l.duration_secs ?? 0), 0),
+        0
+      ) ?? 0,
     modules: (c.modules ?? []).map((m) => ({
       id: m.id,
       course_id: c.id,
@@ -119,6 +125,9 @@ export default async function AdminCursosPage({ searchParams }: AdminCursosPageP
         title: l.title,
         type: l.type ?? 'video',
         vimeo_id: l.vimeo_id,
+        youtube_url: l.youtube_url ?? null,
+        video_thumbnail_url: l.video_thumbnail_url ?? null,
+        completion_percent: l.completion_percent ?? 0,
         content_body: null,
         embed_url: l.embed_url,
         pdf_url: l.pdf_url,

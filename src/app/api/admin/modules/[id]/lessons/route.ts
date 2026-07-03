@@ -7,6 +7,9 @@ const bodySchema = z.object({
   title: z.string().min(1, 'Título obrigatório').max(255),
   type: z.enum(['video', 'text', 'pdf', 'embed']).optional().default('video'),
   vimeo_id: z.string().optional().nullable(),
+  youtube_url: z.string().optional().nullable(),
+  video_thumbnail_url: z.string().optional().nullable(),
+  completion_percent: z.number().int().min(0).max(100).optional(),
   content_body: z.string().optional().nullable(),
   embed_url: z.string().optional().nullable(),
   pdf_url: z.string().optional().nullable(),
@@ -17,23 +20,27 @@ const bodySchema = z.object({
 
 async function requireAdmin() {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }), supabase: null }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user)
+    return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }), supabase: null }
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  if ((profile as { role: string } | null)?.role !== 'admin') return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }), supabase: null }
+  if ((profile as { role: string } | null)?.role !== 'admin')
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }), supabase: null }
   return { error: null, supabase }
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
   const { error, supabase } = await requireAdmin()
   if (error) return error
 
   const parsed = bodySchema.safeParse(await req.json())
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Dados inválidos' }, { status: 400 })
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? 'Dados inválidos' },
+      { status: 400 }
+    )
   }
   const body = parsed.data
 
@@ -44,6 +51,9 @@ export async function POST(
       title: body.title,
       type: body.type,
       vimeo_id: body.type === 'video' ? normalizeVimeoInput(body.vimeo_id) : null,
+      youtube_url: body.type === 'video' ? (body.youtube_url ?? null) : null,
+      video_thumbnail_url: body.type === 'video' ? (body.video_thumbnail_url ?? null) : null,
+      completion_percent: body.type === 'video' ? (body.completion_percent ?? 0) : 0,
       content_body: body.content_body ?? null,
       embed_url: body.embed_url ?? null,
       pdf_url: body.pdf_url ?? null,
@@ -51,7 +61,9 @@ export async function POST(
       order: body.order ?? 0,
       is_free_preview: body.is_free_preview ?? false,
     } as never)
-    .select('id, module_id, title, type, vimeo_id, content_body, embed_url, pdf_url, duration_secs, order, is_free_preview')
+    .select(
+      'id, module_id, title, type, vimeo_id, youtube_url, video_thumbnail_url, completion_percent, content_body, embed_url, pdf_url, duration_secs, order, is_free_preview'
+    )
     .single()
 
   if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })

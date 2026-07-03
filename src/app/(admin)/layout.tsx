@@ -4,17 +4,13 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { AdminNavLink } from '@/components/admin/AdminNavLink'
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/auth/login')
+  if (!user) redirect('/auth/login?returnUrl=/admin')
 
   const { data: profileData } = await supabase
     .from('users')
@@ -38,11 +34,7 @@ export default async function AdminLayout({
     <div className="shell">
       <aside className="side admin">
         <div className="brand">
-          <Link
-            className="logo"
-            href="/"
-            style={{ filter: 'brightness(0) invert(1)' }}
-          >
+          <Link className="logo" href="/" style={{ filter: 'brightness(0) invert(1)' }}>
             <Image
               src="/mb-logo.png"
               alt="MB"
@@ -60,12 +52,7 @@ export default async function AdminLayout({
         <div className="nav-group">Gestão</div>
 
         <AdminNavLink href="/admin">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <rect x="3" y="3" width="7" height="9" />
             <rect x="14" y="3" width="7" height="5" />
             <rect x="14" y="12" width="7" height="9" />
@@ -75,12 +62,7 @@ export default async function AdminLayout({
         </AdminNavLink>
 
         <AdminNavLink href="/admin/alunos">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <circle cx="9" cy="8" r="4" />
             <path d="M2 21v-1a6 6 0 0 1 6-6h2" />
             <circle cx="17" cy="9" r="3" />
@@ -90,12 +72,7 @@ export default async function AdminLayout({
         </AdminNavLink>
 
         <AdminNavLink href="/admin/cursos">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg>
@@ -103,12 +80,7 @@ export default async function AdminLayout({
         </AdminNavLink>
 
         <AdminNavLink href="/admin/matriculas">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
@@ -116,6 +88,7 @@ export default async function AdminLayout({
           Matrículas
         </AdminNavLink>
 
+        {/* MÓDULO DESATIVADO — Avaliações
         <AdminNavLink href="/admin/avaliacoes">
           <svg
             viewBox="0 0 24 24"
@@ -128,14 +101,18 @@ export default async function AdminLayout({
           </svg>
           Avaliações
         </AdminNavLink>
+        */}
+
+        <AdminNavLink href="/admin/certificados">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M4 4h16v14H4z" />
+            <path d="M8 8h8M8 12h8M9 18l-1 3 4-2 4 2-1-3" />
+          </svg>
+          Certificados
+        </AdminNavLink>
 
         <AdminNavLink href="/admin/relatorios">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M3 3v18h18" />
             <path d="m7 14 4-4 3 3 5-6" />
           </svg>
@@ -143,27 +120,25 @@ export default async function AdminLayout({
         </AdminNavLink>
 
         <AdminNavLink href="/admin/planos">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <rect x="2" y="5" width="20" height="14" rx="2" />
             <path d="M2 10h20M6 15h2M10 15h6" />
           </svg>
           Planos
         </AdminNavLink>
 
+        <AdminNavLink href="/admin/cupons">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+            <line x1="7" y1="7" x2="7.01" y2="7" />
+          </svg>
+          Cupons
+        </AdminNavLink>
+
         <div className="nav-group">Plataforma</div>
 
         <Link className="nav-link" href="/dashboard">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M15 3h6v6M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
           </svg>
           Ver plataforma
@@ -175,9 +150,7 @@ export default async function AdminLayout({
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: '13.5px' }}>{adminName}</div>
-            <div style={{ fontSize: '11.5px', color: '#9ca3ae' }}>
-              Administrador
-            </div>
+            <div style={{ fontSize: '11.5px', color: '#9ca3ae' }}>Administrador</div>
           </div>
         </div>
       </aside>

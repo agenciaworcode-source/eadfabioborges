@@ -1,6 +1,20 @@
+// ISR: homepage com dados de planos — revalida a cada 5 min
+export const revalidate = 300
+
 import Link from 'next/link'
 import { PublicNav } from '@/components/layout/PublicNav'
 import { PublicFooter } from '@/components/layout/PublicFooter'
+import { createClient } from '@/lib/supabase/server'
+
+interface PlanPrice {
+  id: string
+  price_monthly: number
+}
+
+function fmtPrice(cents: number): string {
+  if (!cents) return 'Sob consulta'
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)
+}
 
 const checkSvg = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
@@ -8,7 +22,17 @@ const checkSvg = (
   </svg>
 )
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = createClient()
+  const { data: plansData } = await supabase
+    .from('plans')
+    .select('id, price_monthly')
+    .in('id', ['prata', 'ouro', 'diamante'])
+    .eq('is_active', true)
+  const priceMap = Object.fromEntries(
+    ((plansData ?? []) as PlanPrice[]).map((p) => [p.id, p.price_monthly])
+  ) as Record<string, number>
+
   return (
     <>
       <style>{`
@@ -17,7 +41,7 @@ export default function HomePage() {
         .hero h1{ margin-bottom:20px; }
         .hero p.lead{ font-size:19px; color:var(--ink-2); max-width:30ch; }
         .hero-cta{ display:flex; gap:12px; margin-top:30px; flex-wrap:wrap; }
-        .hero-stats{ display:flex; gap:34px; margin-top:38px; }
+        .hero-stats{ display:flex; gap:24px 34px; margin-top:38px; flex-wrap:wrap; }
         .hero-stats .n{ font-size:28px; font-weight:600; letter-spacing:-.03em; }
         .hero-stats .l{ font-size:13px; color:var(--muted); }
         .portrait{
@@ -32,7 +56,7 @@ export default function HomePage() {
           box-shadow:var(--shadow);
         }
         .marquee{ border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:22px 0; margin-top:30px; background:#fff; }
-        .marquee .row{ display:flex; justify-content:space-between; align-items:center; gap:24px; opacity:.6; font-weight:600; color:var(--muted); }
+        .marquee .row{ display:flex; justify-content:space-between; align-items:center; gap:12px 24px; opacity:.6; font-weight:600; color:var(--muted); flex-wrap:wrap; }
         .section{ padding:78px 0; }
         .section h2{ margin-bottom:14px; }
         .sec-head{ max-width:62ch; }
@@ -70,6 +94,11 @@ export default function HomePage() {
           .benefits,.courses,.testi{ grid-template-columns:1fr; }
           .plans{ grid-template-columns:1fr 1fr; }
         }
+        @media (max-width:600px){
+          .plans{ grid-template-columns:1fr; }
+          .cta-band{ padding:36px 24px; border-radius:var(--r-lg); }
+          .hero{ padding:40px 0 20px; }
+        }
       `}</style>
 
       <PublicNav />
@@ -81,29 +110,50 @@ export default function HomePage() {
               Mentoria especializada em recursos eletrotermoterapêuticos
             </span>
             <h1>
-              Eleve a sua<br />estética a nível<br />
+              Eleve a sua
+              <br />
+              estética a nível
+              <br />
               <span style={{ color: 'var(--blue-600)' }}>profissional.</span>
             </h1>
             <p className="lead">
-              Cursos práticos de estética avançada, micropigmentação e gestão — guiados pela metodologia Fábio Borges.
+              Cursos práticos de estética avançada, micropigmentação e gestão — guiados pela
+              metodologia Fábio Borges.
             </p>
             <div className="hero-cta">
-              <Link className="btn btn-primary btn-lg" href="/auth/cadastro">Comece agora</Link>
-              <Link className="btn btn-ghost btn-lg" href="/cursos">Ver cursos</Link>
+              <Link className="btn btn-primary btn-lg" href="/auth/cadastro">
+                Comece agora
+              </Link>
+              <Link className="btn btn-ghost btn-lg" href="/cursos">
+                Ver cursos
+              </Link>
             </div>
             <div className="hero-stats">
-              <div><div className="n">12.000+</div><div className="l">alunas formadas</div></div>
-              <div><div className="n">4,9★</div><div className="l">avaliação média</div></div>
-              <div><div className="n">6</div><div className="l">trilhas completas</div></div>
+              <div>
+                <div className="n">12.000+</div>
+                <div className="l">alunas formadas</div>
+              </div>
+              <div>
+                <div className="n">4,9★</div>
+                <div className="l">avaliação média</div>
+              </div>
+              <div>
+                <div className="n">6</div>
+                <div className="l">trilhas completas</div>
+              </div>
             </div>
           </div>
           <div className="portrait">
             <div className="ph">Foto — Fábio Borges</div>
             <div className="float">
-              <div className="avatar" style={{ background: '#1d1d1f' }}>FB</div>
+              <div className="avatar" style={{ background: '#1d1d1f' }}>
+                FB
+              </div>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '14px' }}>Fábio Borges</div>
-                <div style={{ fontSize: '12px' }} className="muted">Mentor · 15 anos de clínica</div>
+                <div style={{ fontSize: '12px' }} className="muted">
+                  Mentor · 15 anos de clínica
+                </div>
               </div>
             </div>
           </div>
@@ -113,8 +163,12 @@ export default function HomePage() {
       <div className="marquee">
         <div className="wrap">
           <div className="row">
-            <span>Eletroterapia</span><span>Skincare</span><span>Micropigmentação</span>
-            <span>Maquiagem</span><span>Sobrancelhas</span><span>Gestão</span>
+            <span>Eletroterapia</span>
+            <span>Skincare</span>
+            <span>Micropigmentação</span>
+            <span>Maquiagem</span>
+            <span>Sobrancelhas</span>
+            <span>Gestão</span>
           </div>
         </div>
       </div>
@@ -129,34 +183,63 @@ export default function HomePage() {
           <div className="benefits">
             <div className="benefit">
               <div className="ic">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
                   <path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.5 2.5M16.5 16.5L19 19M19 5l-2.5 2.5M7.5 16.5L5 19" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
               </div>
               <h3>Conteúdo prático e real</h3>
-              <p>Protocolos testados em clínica, do básico ao avançado — sem teoria que não se aplica no dia a dia.</p>
+              <p>
+                Protocolos testados em clínica, do básico ao avançado — sem teoria que não se aplica
+                no dia a dia.
+              </p>
             </div>
             <div className="benefit">
               <div className="ic">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
                   <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
                   <path d="M6 12v5c0 1 2.5 3 6 3s6-2 6-3v-5" />
                 </svg>
               </div>
               <h3>Certificação reconhecida</h3>
-              <p>Certificado digital verificável a cada trilha concluída — para comprovar a sua especialização.</p>
+              <p>
+                Certificado digital verificável a cada trilha concluída — para comprovar a sua
+                especialização.
+              </p>
             </div>
             <div className="benefit">
               <div className="ic">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               </div>
               <h3>Mentoria ao vivo</h3>
-              <p>Encontros mensais com o Fábio e a comunidade para tirar dúvidas e evoluir junto.</p>
+              <p>
+                Encontros mensais com o Fábio e a comunidade para tirar dúvidas e evoluir junto.
+              </p>
             </div>
           </div>
         </div>
@@ -166,37 +249,70 @@ export default function HomePage() {
       <section className="section" style={{ paddingTop: '0' }}>
         <div className="wrap">
           <div className="flex between aic">
-            <div><span className="eyebrow">Catálogo</span><h2 style={{ marginTop: '12px' }}>Cursos em destaque</h2></div>
-            <Link className="btn btn-ghost" href="/cursos">Ver todos</Link>
+            <div>
+              <span className="eyebrow">Catálogo</span>
+              <h2 style={{ marginTop: '12px' }}>Cursos em destaque</h2>
+            </div>
+            <Link className="btn btn-ghost" href="/cursos">
+              Ver todos
+            </Link>
           </div>
           <div className="courses">
             <Link className="ccard" href="/cursos/eletroterapia-recursos-esteticos">
               <div className="thumb b2">
-                <svg className="cat-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <svg
+                  className="cat-icn"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
                   <path d="M13 2 3 14h7l-1 8 10-12h-7z" />
                 </svg>
               </div>
               <div className="body">
-                <div className="meta"><span>Intermediário</span>·<span>16h</span></div>
+                <div className="meta">
+                  <span>Intermediário</span>·<span>16h</span>
+                </div>
                 <h3>Eletroterapia &amp; Recursos Estéticos</h3>
-                <div className="foot"><span className="price">R$ 397</span><span className="badge blue">Incluído no Ouro</span></div>
+                <div className="foot">
+                  <span className="price">R$ 397</span>
+                  <span className="badge blue">Incluído no Ouro</span>
+                </div>
               </div>
             </Link>
             <Link className="ccard" href="/cursos/skincare-avancado">
               <div className="thumb">
-                <svg className="cat-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <svg
+                  className="cat-icn"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
                   <path d="M12 2s7 7 7 12a7 7 0 1 1-14 0c0-5 7-12 7-12z" />
                 </svg>
               </div>
               <div className="body">
-                <div className="meta"><span>Avançado</span>·<span>14h</span></div>
+                <div className="meta">
+                  <span>Avançado</span>·<span>14h</span>
+                </div>
                 <h3>Skincare Avançado &amp; Protocolos</h3>
-                <div className="foot"><span className="price">R$ 397</span><span className="badge blue">Incluído no Ouro</span></div>
+                <div className="foot">
+                  <span className="price">R$ 397</span>
+                  <span className="badge blue">Incluído no Ouro</span>
+                </div>
               </div>
             </Link>
             <Link className="ccard" href="/cursos/micropigmentacao">
               <div className="thumb b4">
-                <svg className="cat-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <svg
+                  className="cat-icn"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
                   <path d="m12 19 7-7 3 3-7 7-3-3z" />
                   <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18z" />
                   <path d="m2 2 7.586 7.586" />
@@ -204,9 +320,14 @@ export default function HomePage() {
                 </svg>
               </div>
               <div className="body">
-                <div className="meta"><span>Avançado</span>·<span>22h</span></div>
+                <div className="meta">
+                  <span>Avançado</span>·<span>22h</span>
+                </div>
                 <h3>Micropigmentação: Iniciante ao Avançado</h3>
-                <div className="foot"><span className="price">R$ 497</span><span className="badge">Avulso</span></div>
+                <div className="foot">
+                  <span className="price">R$ 497</span>
+                  <span className="badge">Avulso</span>
+                </div>
               </div>
             </Link>
           </div>
@@ -214,24 +335,71 @@ export default function HomePage() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section className="section" style={{ background: '#fff', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+      <section
+        className="section"
+        style={{
+          background: '#fff',
+          borderTop: '1px solid var(--line)',
+          borderBottom: '1px solid var(--line)',
+        }}
+      >
         <div className="wrap">
-          <div className="center"><span className="eyebrow">Depoimentos</span><h2 style={{ marginTop: '12px' }}>Resultados de quem fez</h2></div>
+          <div className="center">
+            <span className="eyebrow">Depoimentos</span>
+            <h2 style={{ marginTop: '12px' }}>Resultados de quem fez</h2>
+          </div>
           <div className="testi">
             <div className="tcard">
               <div className="stars">★★★★★</div>
-              <p>&ldquo;Em 3 meses eu dobrei o faturamento da minha clínica. Os protocolos de eletroterapia mudaram a forma como atendo.&rdquo;</p>
-              <div className="who"><div className="avatar sm">CM</div><div><div style={{ fontWeight: 600, fontSize: '14px' }}>Carla Mendes</div><div className="muted" style={{ fontSize: '12px' }}>Esteticista · Campinas</div></div></div>
+              <p>
+                &ldquo;Em 3 meses eu dobrei o faturamento da minha clínica. Os protocolos de
+                eletroterapia mudaram a forma como atendo.&rdquo;
+              </p>
+              <div className="who">
+                <div className="avatar sm">CM</div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '14px' }}>Carla Mendes</div>
+                  <div className="muted" style={{ fontSize: '12px' }}>
+                    Esteticista · Campinas
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="tcard">
               <div className="stars">★★★★★</div>
-              <p>&ldquo;A trilha de micropigmentação é absurda de completa. Saí insegura e hoje tenho agenda lotada e lista de espera.&rdquo;</p>
-              <div className="who"><div className="avatar sm" style={{ background: '#1d1d1f' }}>RA</div><div><div style={{ fontWeight: 600, fontSize: '14px' }}>Renata Alves</div><div className="muted" style={{ fontSize: '12px' }}>Micropigmentadora · Recife</div></div></div>
+              <p>
+                &ldquo;A trilha de micropigmentação é absurda de completa. Saí insegura e hoje tenho
+                agenda lotada e lista de espera.&rdquo;
+              </p>
+              <div className="who">
+                <div className="avatar sm" style={{ background: '#1d1d1f' }}>
+                  RA
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '14px' }}>Renata Alves</div>
+                  <div className="muted" style={{ fontSize: '12px' }}>
+                    Micropigmentadora · Recife
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="tcard">
               <div className="stars">★★★★★</div>
-              <p>&ldquo;O módulo de gestão me deu o que faltava: precificação, fluxo e marca. Virei dona de negócio, não só técnica.&rdquo;</p>
-              <div className="who"><div className="avatar sm" style={{ background: '#2bbf6a' }}>JS</div><div><div style={{ fontWeight: 600, fontSize: '14px' }}>Juliana Souza</div><div className="muted" style={{ fontSize: '12px' }}>Proprietária · Curitiba</div></div></div>
+              <p>
+                &ldquo;O módulo de gestão me deu o que faltava: precificação, fluxo e marca. Virei
+                dona de negócio, não só técnica.&rdquo;
+              </p>
+              <div className="who">
+                <div className="avatar sm" style={{ background: '#2bbf6a' }}>
+                  JS
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '14px' }}>Juliana Souza</div>
+                  <div className="muted" style={{ fontSize: '12px' }}>
+                    Proprietária · Curitiba
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -240,51 +408,79 @@ export default function HomePage() {
       {/* PLANS */}
       <section className="section">
         <div className="wrap">
-          <div className="center"><span className="eyebrow">Planos</span><h2 style={{ marginTop: '12px' }}>Escolha como quer evoluir</h2></div>
+          <div className="center">
+            <span className="eyebrow">Planos</span>
+            <h2 style={{ marginTop: '12px' }}>Escolha como quer evoluir</h2>
+          </div>
           <div className="plans">
             <div className="pcard">
               <span className="plan-badge plan-free">Free</span>
               <div className="pp">Grátis</div>
-              <p className="muted" style={{ fontSize: '13.5px' }}>2 cursos introdutórios</p>
+              <p className="muted" style={{ fontSize: '13.5px' }}>
+                Estudantes e visitantes
+              </p>
               <ul>
-                <li>{checkSvg}Acesso a 2 cursos intro</li>
-                <li>{checkSvg}Comunidade aberta</li>
+                <li>{checkSvg}Acesso a cursos gratuitos</li>
+                <li>{checkSvg}Prévia de módulos pagos</li>
               </ul>
-              <Link className="btn btn-ghost btn-block" href="/auth/cadastro">Criar conta</Link>
+              <Link className="btn btn-ghost btn-block" href="/auth/cadastro">
+                Criar conta
+              </Link>
             </div>
             <div className="pcard">
               <span className="plan-badge plan-prata">Prata</span>
-              <div className="pp">R$ 97<small>/mês</small></div>
-              <p className="muted" style={{ fontSize: '13.5px' }}>4 cursos core</p>
+              <div className="pp">
+                {fmtPrice(priceMap['prata'] ?? 0)}
+                <small>/mês</small>
+              </div>
+              <p className="muted" style={{ fontSize: '13.5px' }}>
+                12x no cartão
+              </p>
               <ul>
-                <li>{checkSvg}4 cursos essenciais</li>
-                <li>{checkSvg}Materiais para download</li>
-                <li>{checkSvg}Certificado digital</li>
+                <li>{checkSvg}Plataforma com vídeoaulas e palestras</li>
+                <li>{checkSvg}Material digital (apostilas e artigos)</li>
+                <li>{checkSvg}Certificado em cada trilha</li>
               </ul>
-              <Link className="btn btn-ghost btn-block" href="/planos">Assinar Prata</Link>
+              <Link className="btn btn-ghost btn-block" href="/planos">
+                Ver plano Prata
+              </Link>
             </div>
             <div className="pcard feat">
               <span className="ribbon">Mais popular</span>
               <span className="plan-badge plan-ouro">Ouro</span>
-              <div className="pp">R$ 197<small>/mês</small></div>
-              <p className="muted" style={{ fontSize: '13.5px' }}>Todos os cursos + quiz</p>
+              <div className="pp">
+                {fmtPrice(priceMap['ouro'] ?? 0)}
+                <small>/mês</small>
+              </div>
+              <p className="muted" style={{ fontSize: '13.5px' }}>
+                12x no cartão
+              </p>
               <ul>
-                <li>{checkSvg}Todos os 6 cursos</li>
-                <li>{checkSvg}Quizzes e avaliações</li>
-                <li>{checkSvg}Certificados ilimitados</li>
+                <li>{checkSvg}Tudo do Prata</li>
+                <li>{checkSvg}Telefone exclusivo do mentor</li>
+                <li>{checkSvg}E-mail exclusivo para dúvidas</li>
               </ul>
-              <Link className="btn btn-primary btn-block" href="/planos">Assinar Ouro</Link>
+              <Link className="btn btn-primary btn-block" href="/planos">
+                Ver plano Ouro
+              </Link>
             </div>
             <div className="pcard">
               <span className="plan-badge plan-diamante">Diamante</span>
-              <div className="pp">R$ 397<small>/mês</small></div>
-              <p className="muted" style={{ fontSize: '13.5px' }}>Tudo + mentoria ao vivo</p>
+              <div className="pp">
+                {fmtPrice(priceMap['diamante'] ?? 0)}
+                <small>/mês</small>
+              </div>
+              <p className="muted" style={{ fontSize: '13.5px' }}>
+                12x no cartão
+              </p>
               <ul>
                 <li>{checkSvg}Tudo do Ouro</li>
-                <li>{checkSvg}Mentoria ao vivo mensal</li>
-                <li>{checkSvg}Certificado prioritário</li>
+                <li>{checkSvg}Reunião particular a cada 60 dias</li>
+                <li>{checkSvg}Selo &quot;Mentoria Fábio Borges&quot;</li>
               </ul>
-              <Link className="btn btn-dark btn-block" href="/planos">Assinar Diamante</Link>
+              <Link className="btn btn-ghost btn-block" href="/planos">
+                Ver plano Diamante
+              </Link>
             </div>
           </div>
         </div>
@@ -294,10 +490,19 @@ export default function HomePage() {
       <section className="wrap" style={{ paddingBottom: '20px' }}>
         <div className="cta-band">
           <h2>Pronta para se tornar referência?</h2>
-          <p style={{ color: 'rgba(255,255,255,.7)', fontSize: '18px', margin: '14px auto 28px', maxWidth: '46ch' }}>
+          <p
+            style={{
+              color: 'rgba(255,255,255,.7)',
+              fontSize: '18px',
+              margin: '14px auto 28px',
+              maxWidth: '46ch',
+            }}
+          >
             Comece grátis hoje e tenha acesso aos primeiros cursos da mentoria.
           </p>
-          <Link className="btn btn-primary btn-lg" href="/auth/cadastro">Criar minha conta grátis</Link>
+          <Link className="btn btn-primary btn-lg" href="/auth/cadastro">
+            Criar minha conta grátis
+          </Link>
         </div>
       </section>
 

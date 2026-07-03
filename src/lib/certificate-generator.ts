@@ -1,21 +1,25 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { PDFDocument, rgb, StandardFonts, type PDFFont } from 'pdf-lib'
 import QRCode from 'qrcode'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
+import {
+  resolveCertificateTemplate,
+  renderCertificateTemplate,
+  type CertificateTemplate,
+} from '@/lib/certificates/templates'
 
 export interface CertificateData {
   userName: string
   courseName: string
   courseHours: number
-  score: number // 0–10
+  score: number
   issuedAt: Date
-  uuid: string // certificate ID
+  uuid: string
   userId: string
+  template?: Partial<CertificateTemplate> | null
 }
 
-const ORIGIN =
-  process.env.NEXT_PUBLIC_APP_URL ?? 'https://ead.fabioborgesoficial.com.br'
+const ORIGIN = process.env.NEXT_PUBLIC_APP_URL ?? 'https://ead.fabioborgesoficial.com.br'
 
-// A4 landscape in points
 const PAGE_W = 841.89
 const PAGE_H = 595.28
 
@@ -27,9 +31,77 @@ function formatDate(date: Date): string {
   }).format(date)
 }
 
-export async function generateCertificatePdf(
-  data: CertificateData
-): Promise<Uint8Array> {
+function hexToRgb(hex: string) {
+  const normalized = hex.replace('#', '')
+  const value = Number.parseInt(normalized, 16)
+  return rgb(((value >> 16) & 255) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255)
+}
+
+function width(text: string, font: PDFFont, size: number) {
+  return font.widthOfTextAtSize(text, size)
+}
+
+function drawCenteredText({
+  page,
+  text,
+  y,
+  size,
+  font,
+  color,
+}: {
+  page: ReturnType<PDFDocument['addPage']>
+  text: string
+  y: number
+  size: number
+  font: PDFFont
+  color: ReturnType<typeof rgb>
+}) {
+  page.drawText(text, {
+    x: (PAGE_W - width(text, font, size)) / 2,
+    y,
+    size,
+    font,
+    color,
+  })
+}
+
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number) {
+  const words = text.split(/\s+/).filter(Boolean)
+  const lines: string[] = []
+  let current = ''
+
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word
+    if (width(next, font, size) <= maxWidth) {
+      current = next
+    } else {
+      if (current) lines.push(current)
+      current = word
+    }
+  }
+
+  if (current) lines.push(current)
+  return lines
+}
+
+async function embedRemoteImage(pdfDoc: PDFDocument, url: string) {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) return null
+    const bytes = new Uint8Array(await response.arrayBuffer())
+    const contentType = response.headers.get('content-type') ?? ''
+    if (contentType.includes('png') || url.toLowerCase().endsWith('.png')) {
+      return await pdfDoc.embedPng(bytes)
+    }
+    return await pdfDoc.embedJpg(bytes)
+  } catch {
+    return null
+  }
+}
+
+export async function generateCertificatePdf(data: CertificateData): Promise<Uint8Array> {
+  const template = resolveCertificateTemplate(data.template)
+  const primary = hexToRgb(template.primary_color)
   const pdfDoc = await PDFDocument.create()
   const page = pdfDoc.addPage([PAGE_W, PAGE_H])
 
@@ -37,7 +109,6 @@ export async function generateCertificatePdf(
   const fontReg = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const fontOblique = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
 
-  // ─── Background ───────────────────────────────────────────────────────────
   page.drawRectangle({
     x: 0,
     y: 0,
@@ -46,123 +117,128 @@ export async function generateCertificatePdf(
     color: rgb(1, 1, 1),
   })
 
-  // ─── Header dark band ─────────────────────────────────────────────────────
+  if (template.background_url) {
+    const background = await embedRemoteImage(pdfDoc, template.background_url)
+    if (background) {
+      page.drawImage(background, { x: 0, y: 0, width: PAGE_W, height: PAGE_H })
+    }
+  }
+
   page.drawRectangle({
     x: 0,
     y: PAGE_H - 60,
     width: PAGE_W,
     height: 60,
-    color: rgb(0.114, 0.114, 0.122), // #1d1d1f
+    color: rgb(0.114, 0.114, 0.122),
   })
 
-  // Header: brand name
-  page.drawText('Fábio Borges', {
-    x: 36,
+  if (template.logo_url) {
+    const logo = await embedRemoteImage(pdfDoc, template.logo_url)
+    if (logo) {
+      const scale = Math.min(34 / logo.width, 34 / logo.height)
+      page.drawImage(logo, {
+        x: 36,
+        y: PAGE_H - 48,
+        width: logo.width * scale,
+        height: logo.height * scale,
+      })
+    }
+  }
+
+  page.drawText('Fabio Borges', {
+    x: template.logo_url ? 82 : 36,
     y: PAGE_H - 38,
     size: 16,
     font: fontBold,
     color: rgb(1, 1, 1),
   })
-  page.drawText('Mentoria Profissional em Estética', {
-    x: 36,
+  page.drawText('Mentoria Profissional em Estetica', {
+    x: template.logo_url ? 82 : 36,
     y: PAGE_H - 54,
     size: 9,
     font: fontReg,
     color: rgb(0.8, 0.8, 0.8),
   })
 
-  // Header right: "Certificado válido" badge
-  page.drawText('✓ Certificado válido', {
-    x: PAGE_W - 160,
+  page.drawText('Certificado valido', {
+    x: PAGE_W - 150,
     y: PAGE_H - 38,
     size: 11,
     font: fontBold,
-    color: rgb(0.149, 0.698, 0.435), // green
+    color: rgb(0.149, 0.698, 0.435),
   })
 
-  // ─── Inner border ─────────────────────────────────────────────────────────
   const margin = 18
   page.drawRectangle({
     x: margin,
     y: margin,
     width: PAGE_W - margin * 2,
     height: PAGE_H - 60 - margin * 2,
-    borderColor: rgb(0.886, 0.925, 0.984), // #e2ecfb
+    borderColor: rgb(0.886, 0.925, 0.984),
     borderWidth: 1.5,
-    color: rgb(1, 1, 1),
   })
 
-  // ─── Content ──────────────────────────────────────────────────────────────
-  const contentTop = PAGE_H - 60 - 36
-
-  // Eyebrow
-  const eyebrow = 'CERTIFICADO DE CONCLUSÃO'
-  const eyebrowW = fontReg.widthOfTextAtSize(eyebrow, 9)
-  page.drawText(eyebrow, {
-    x: (PAGE_W - eyebrowW) / 2,
+  const contentTop = PAGE_H - 96
+  drawCenteredText({
+    page,
+    text: template.title.toUpperCase(),
     y: contentTop,
-    size: 9,
+    size: 10,
     font: fontReg,
     color: rgb(0.68, 0.68, 0.68),
   })
 
-  // "Certificamos que"
-  const line1 = 'Certificamos que'
-  const line1W = fontReg.widthOfTextAtSize(line1, 12)
-  page.drawText(line1, {
-    x: (PAGE_W - line1W) / 2,
-    y: contentTop - 28,
-    size: 12,
-    font: fontReg,
-    color: rgb(0.43, 0.43, 0.43),
+  const body = renderCertificateTemplate(template.body_template, {
+    studentName: data.userName,
+    courseName: data.courseName,
+    courseHours: data.courseHours,
+    score: Number(data.score.toFixed(1)),
+    issuedAt: formatDate(data.issuedAt),
   })
 
-  // Student name
   const nameSize = data.userName.length > 30 ? 28 : 34
-  const nameW = fontBold.widthOfTextAtSize(data.userName, nameSize)
-  page.drawText(data.userName, {
-    x: (PAGE_W - nameW) / 2,
-    y: contentTop - 64,
+  drawCenteredText({
+    page,
+    text: data.userName,
+    y: contentTop - 58,
     size: nameSize,
     font: fontBold,
     color: rgb(0.114, 0.114, 0.122),
   })
 
-  // "concluiu com aproveitamento o curso"
-  const line2 = 'concluiu com aproveitamento o curso'
-  const line2W = fontReg.widthOfTextAtSize(line2, 12)
-  page.drawText(line2, {
-    x: (PAGE_W - line2W) / 2,
-    y: contentTop - 96,
-    size: 12,
-    font: fontReg,
-    color: rgb(0.43, 0.43, 0.43),
+  const bodyLines = wrapText(body, fontReg, 12, 620).slice(0, 3)
+  bodyLines.forEach((line, index) => {
+    drawCenteredText({
+      page,
+      text: line,
+      y: contentTop - 94 - index * 16,
+      size: 12,
+      font: fontReg,
+      color: rgb(0.43, 0.43, 0.43),
+    })
   })
 
-  // Course name
   const courseSize = data.courseName.length > 40 ? 16 : 20
-  const courseW = fontBold.widthOfTextAtSize(data.courseName, courseSize)
-  page.drawText(data.courseName, {
-    x: (PAGE_W - courseW) / 2,
-    y: contentTop - 122,
+  drawCenteredText({
+    page,
+    text: data.courseName,
+    y: contentTop - 150,
     size: courseSize,
     font: fontBold,
-    color: rgb(0.282, 0.631, 0.996), // #48a1fe
+    color: primary,
   })
 
-  // ─── Info grid ────────────────────────────────────────────────────────────
-  const gridY = contentTop - 188
+  const gridY = contentTop - 214
   const gridItems = [
-    { label: 'CARGA HORÁRIA', value: `${data.courseHours} horas` },
+    { label: 'CARGA HORARIA', value: `${data.courseHours} horas` },
     { label: 'NOTA FINAL', value: `${data.score.toFixed(1)} / 10` },
-    { label: 'CONCLUÍDO EM', value: formatDate(data.issuedAt) },
+    { label: 'CONCLUIDO EM', value: formatDate(data.issuedAt) },
   ]
   const cellW = 200
   const startX = (PAGE_W - cellW * 3) / 2
 
   gridItems.forEach((item, i) => {
     const cx = startX + i * cellW
-    // Border
     page.drawRectangle({
       x: cx,
       y: gridY - 44,
@@ -172,19 +248,16 @@ export async function generateCertificatePdf(
       borderWidth: 1,
       color: rgb(1, 1, 1),
     })
-    // Label
-    const lW = fontReg.widthOfTextAtSize(item.label, 7)
-    page.drawText(item.label, {
-      x: cx + (cellW - 8 - lW) / 2,
+    drawCenteredText({
+      page,
+      text: item.label,
       y: gridY - 26,
       size: 7,
       font: fontReg,
       color: rgb(0.68, 0.68, 0.68),
     })
-    // Value
-    const vW = fontBold.widthOfTextAtSize(item.value, 14)
     page.drawText(item.value, {
-      x: cx + (cellW - 8 - vW) / 2,
+      x: cx + (cellW - 8 - width(item.value, fontBold, 14)) / 2,
       y: gridY - 42,
       size: 14,
       font: fontBold,
@@ -192,34 +265,51 @@ export async function generateCertificatePdf(
     })
   })
 
-  // ─── Signature ────────────────────────────────────────────────────────────
   const sigX = 80
-  const sigY = gridY - 80
+  const sigY = gridY - 86
 
-  page.drawText('Fábio Borges', {
-    x: sigX,
-    y: sigY + 12,
-    size: 22,
-    font: fontOblique,
-    color: rgb(0.114, 0.114, 0.122),
-  })
-  // Underline
-  const sigW = fontOblique.widthOfTextAtSize('Fábio Borges', 22)
+  if (template.signature_url) {
+    const signature = await embedRemoteImage(pdfDoc, template.signature_url)
+    if (signature) {
+      const scale = Math.min(180 / signature.width, 58 / signature.height)
+      page.drawImage(signature, {
+        x: sigX,
+        y: sigY + 8,
+        width: signature.width * scale,
+        height: signature.height * scale,
+      })
+    }
+  } else {
+    page.drawText(template.issuer_name, {
+      x: sigX,
+      y: sigY + 18,
+      size: 22,
+      font: fontOblique,
+      color: rgb(0.114, 0.114, 0.122),
+    })
+  }
+
   page.drawLine({
     start: { x: sigX, y: sigY + 8 },
-    end: { x: sigX + sigW, y: sigY + 8 },
-    thickness: 1.5,
+    end: { x: sigX + 210, y: sigY + 8 },
+    thickness: 1.2,
     color: rgb(0.114, 0.114, 0.122),
   })
-  page.drawText('Mentor · Fábio Borges Mentoria', {
+  page.drawText(template.issuer_name, {
     x: sigX,
-    y: sigY - 4,
-    size: 9,
+    y: sigY - 6,
+    size: 10,
+    font: fontBold,
+    color: rgb(0.114, 0.114, 0.122),
+  })
+  page.drawText(template.issuer_role, {
+    x: sigX,
+    y: sigY - 20,
+    size: 8.5,
     font: fontReg,
     color: rgb(0.56, 0.56, 0.56),
   })
 
-  // ─── QR Code ──────────────────────────────────────────────────────────────
   try {
     const qrUrl = `${ORIGIN}/certificado/${data.uuid}`
     const qrBuffer = await QRCode.toBuffer(qrUrl, {
@@ -228,34 +318,27 @@ export async function generateCertificatePdf(
       errorCorrectionLevel: 'M',
     })
     const qrImage = await pdfDoc.embedPng(qrBuffer)
-    const qrSize = 80
-
     page.drawImage(qrImage, {
-      x: PAGE_W - qrSize - 80,
-      y: sigY - 8,
-      width: qrSize,
-      height: qrSize,
+      x: PAGE_W - 160,
+      y: sigY - 10,
+      width: 80,
+      height: 80,
     })
-
-    const verifyLabel = 'Verificar autenticidade'
-    const verifyW = fontReg.widthOfTextAtSize(verifyLabel, 8)
-    page.drawText(verifyLabel, {
-      x: PAGE_W - 80 - (verifyW - qrSize) / 2 - 80,
-      y: sigY - 16,
+    page.drawText('Verificar autenticidade', {
+      x: PAGE_W - 166,
+      y: sigY - 20,
       size: 8,
       font: fontReg,
       color: rgb(0.56, 0.56, 0.56),
     })
   } catch {
-    // QR Code opcional — não bloqueia geração do certificado
+    // QR code is optional and must not block certificate generation.
   }
 
-  // ─── Footer: verification code ────────────────────────────────────────────
   const shortCode = `MB-${data.issuedAt.getFullYear()}-${data.uuid.slice(0, 6).toUpperCase()}`
-  const footerText = `Código de verificação: ${shortCode} · ${ORIGIN}/certificado/${data.uuid}`
-  const footerW = fontReg.widthOfTextAtSize(footerText, 7.5)
+  const footerText = `Codigo de verificacao: ${shortCode} - ${ORIGIN}/certificado/${data.uuid}`
   page.drawText(footerText, {
-    x: (PAGE_W - footerW) / 2,
+    x: (PAGE_W - width(footerText, fontReg, 7.5)) / 2,
     y: margin + 10,
     size: 7.5,
     font: fontReg,
@@ -265,29 +348,25 @@ export async function generateCertificatePdf(
   return pdfDoc.save()
 }
 
-// ─── Upload to Supabase Storage ────────────────────────────────────────────
-
 export async function uploadCertificatePdf(
   pdfBytes: Uint8Array,
   userId: string,
   uuid: string
 ): Promise<string | null> {
   try {
-    const supabase = createClient()
+    const supabase = createServiceClient()
     const path = `${userId}/${uuid}.pdf`
 
-    const { error } = await supabase.storage
-      .from('certificates')
-      .upload(path, pdfBytes, {
-        contentType: 'application/pdf',
-        upsert: true,
-      })
+    const { error } = await supabase.storage.from('certificates').upload(path, pdfBytes, {
+      contentType: 'application/pdf',
+      upsert: true,
+    })
 
     if (error) return null
 
     const { data: signed } = await supabase.storage
       .from('certificates')
-      .createSignedUrl(path, 60 * 60 * 24 * 365) // 1 year
+      .createSignedUrl(path, 60 * 60 * 24 * 365)
 
     return signed?.signedUrl ?? null
   } catch {

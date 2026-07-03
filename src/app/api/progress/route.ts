@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
+import { issueCertificate } from '@/lib/certificates/issue'
 import type { Database } from '@/types/database'
+import { ensureCourseEnrollmentForAccess, hasCourseAccess } from '@/lib/courses/access'
 
-type LessonProgressInsert =
-  Database['public']['Tables']['lesson_progress']['Insert']
+type LessonProgressInsert = Database['public']['Tables']['lesson_progress']['Insert']
 
 const progressSchema = z.object({
   lessonId: z.string().uuid(),
@@ -69,17 +71,14 @@ export async function POST(request: Request) {
   // ─── Trigger de conclusão de curso ──────────────────────────────────────
   // Quando uma aula é marcada como completa, verifica se o curso inteiro foi concluído
   if (completed) {
-    void checkCourseCompletion(user.id, lessonId)
+    void checkCourseCompletion(user.id, user.email ?? null, lessonId)
   }
 
   return NextResponse.json({ updated: true })
 }
 
-async function checkCourseCompletion(
-  userId: string,
-  lessonId: string
-) {
-  const supabase = createClient()
+async function checkCourseCompletion(userId: string, userEmail: string | null, lessonId: string) {
+  const supabase = createServiceClient()
   try {
     // Encontrar o curso desta aula
     const { data: lessonData } = await supabase
@@ -97,17 +96,18 @@ async function checkCourseCompletion(
 
     const courseId = lesson.modules.course_id
 
-    // Verificar se há enrollment ativo para este curso
-    const { data: enrollmentData } = await supabase
-      .from('enrollments')
-      .select('id, status')
-      .eq('user_id', userId)
+    // Se o curso tem quiz final obrigatório, a conclusão é acionada pelo quiz
+    const { data: finalQuizData } = await supabase
+      .from('quizzes')
+      .select('id')
       .eq('course_id', courseId)
-      .eq('status', 'active')
+      .eq('scope', 'course')
       .maybeSingle()
 
-    const enrollment = enrollmentData as { id: string; status: string } | null
-    if (!enrollment) return
+    if (finalQuizData) return
+
+    const canAccessCourse = await hasCourseAccess(supabase, { userId, courseId })
+    if (!canAccessCourse) return
 
     // Buscar todos os lesson IDs do curso
     const { data: modulesData } = await supabase
@@ -116,9 +116,7 @@ async function checkCourseCompletion(
       .eq('course_id', courseId)
 
     const modules = (modulesData ?? []) as unknown as ModuleRow[]
-    const allLessonIds = modules.flatMap((m) =>
-      (m.lessons ?? []).map((l) => l.id)
-    )
+    const allLessonIds = modules.flatMap((m) => (m.lessons ?? []).map((l) => l.id))
 
     if (allLessonIds.length === 0) return
 
@@ -130,33 +128,31 @@ async function checkCourseCompletion(
       .in('lesson_id', allLessonIds)
 
     const progress = (progressData ?? []) as unknown as LessonProgressRow[]
-    const completedIds = new Set(
-      progress.filter((p) => p.completed).map((p) => p.lesson_id)
-    )
+    const completedIds = new Set(progress.filter((p) => p.completed).map((p) => p.lesson_id))
 
     const allDone = allLessonIds.every((id) => completedIds.has(id))
     if (!allDone) return
 
-    // Marcar enrollment como concluído
-    await supabase
-      .from('enrollments')
-      .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-      } as never)
-      .eq('id', enrollment.id)
-
-    // Disparar geração de certificado (fire-and-forget)
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-    fetch(`${appUrl}/api/certificate/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ courseId }),
-      // Não aguarda resposta — geração é assíncrona
-    }).catch(() => {
-      // Falha silenciosa — não bloqueia o aluno
+    const { error: enrollmentError } = await ensureCourseEnrollmentForAccess(supabase, {
+      userId,
+      courseId,
+      status: 'completed',
     })
+
+    if (enrollmentError) return
+
+    // Buscar nome do aluno para o certificado
+    const { data: profileData } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', userId)
+      .maybeSingle()
+
+    const userName =
+      (profileData as { name: string } | null)?.name || userEmail?.split('@')[0] || 'Aluno'
+
+    // Emitir certificado diretamente (sem HTTP — evita problema de auth em server-to-server)
+    void issueCertificate({ userId, userEmail, userName, courseId })
   } catch {
     // Fire-and-forget — erros não afetam o save de progresso
   }

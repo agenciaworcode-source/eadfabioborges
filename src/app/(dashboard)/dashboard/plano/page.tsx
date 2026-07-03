@@ -89,12 +89,7 @@ const PLAN_DETAILS: Record<PlanKey, PlanDetail> = {
     badge: 'plan-diamante',
     price: 'R$ 397',
     priceLabel: '/mês',
-    benefits: [
-      'Tudo do Ouro',
-      'Mentoria ao vivo mensal',
-      'Certificado prioritário',
-      'Suporte VIP',
-    ],
+    benefits: ['Tudo do Ouro', 'Mentoria ao vivo mensal', 'Certificado prioritário', 'Suporte VIP'],
     upsellTo: null,
     upsellName: null,
     upsellPrice: null,
@@ -119,7 +114,14 @@ const PLAN_DETAILS: Record<PlanKey, PlanDetail> = {
 }
 
 const checkSvg = (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+  <svg
+    width="17"
+    height="17"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.4"
+  >
     <path d="M20 6 9 17l-5-5" />
   </svg>
 )
@@ -157,9 +159,13 @@ export default async function PlanoPage() {
     .limit(1)
     .maybeSingle()
 
-  const subscription = subscriptionData as { plan: string; status: string; period_end: string } | null
+  const subscription = subscriptionData as {
+    plan: string
+    status: string
+    period_end: string
+  } | null
 
-  const planKey = ((profile?.plan ?? 'free') as PlanKey)
+  const planKey = (profile?.plan ?? 'free') as PlanKey
   const plan = PLAN_DETAILS[planKey] ?? PLAN_DETAILS.free
 
   return (
@@ -220,7 +226,9 @@ export default async function PlanoPage() {
               </p>
             ) : (
               <p style={{ color: 'rgba(255,255,255,.65)', fontSize: '14px' }}>
-                {planKey === 'free' ? 'Sem data de vencimento' : 'Gerencie sua assinatura no painel de pagamentos'}
+                {planKey === 'free'
+                  ? 'Sem data de vencimento'
+                  : 'Gerencie sua assinatura no painel de pagamentos'}
               </p>
             )}
           </div>
@@ -228,7 +236,10 @@ export default async function PlanoPage() {
             <Link className="btn btn-primary" href="/planos">
               Fazer upgrade
             </Link>
-            <button className="btn btn-ghost" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }}>
+            <button
+              className="btn btn-ghost"
+              style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }}
+            >
               Gerenciar
             </button>
           </div>
@@ -239,32 +250,48 @@ export default async function PlanoPage() {
           <div className="col gap24">
             <div className="card card-pad">
               <h3 style={{ fontSize: '18px' }}>Histórico de pagamentos</h3>
-              <table className="tbl" style={{ marginTop: '14px' }}>
-                <thead>
-                  <tr>
-                    <th>Data</th>
-                    <th>Descrição</th>
-                    <th>Valor</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {planKey === 'free' ? (
+              <div className="tbl-wrap" style={{ marginTop: '14px' }}>
+                <table className="tbl">
+                  <thead>
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', color: 'var(--muted)', padding: '28px 16px' }}>
-                        Nenhuma transação registrada
-                      </td>
+                      <th>Data</th>
+                      <th>Descrição</th>
+                      <th>Valor</th>
+                      <th>Status</th>
+                      <th></th>
                     </tr>
-                  ) : (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', color: 'var(--muted)', padding: '28px 16px' }}>
-                        Histórico disponível após integração com Stripe
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {planKey === 'free' ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          style={{
+                            textAlign: 'center',
+                            color: 'var(--muted)',
+                            padding: '28px 16px',
+                          }}
+                        >
+                          Nenhuma transação registrada
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          style={{
+                            textAlign: 'center',
+                            color: 'var(--muted)',
+                            padding: '28px 16px',
+                          }}
+                        >
+                          Histórico disponível após integração com Stripe
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 

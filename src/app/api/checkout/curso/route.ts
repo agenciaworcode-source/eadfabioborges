@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { getCheckoutProvider } from '@/lib/checkout'
+import { createEnrollmentWithAccessWindow } from '@/lib/enrollments/access'
 
 const bodySchema = z.object({
   courseId: z.string().uuid(),
+  source: z.literal('cart'),
 })
 
 interface CourseRow {
@@ -36,7 +38,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Dados inválidos', details: parsed.error.flatten() },
-      { status: 400 },
+      { status: 400 }
     )
   }
 
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
 
   const { data: courseData } = await supabase
     .from('courses')
-    .select('id, title, price, slug')
+    .select('id, title, price, slug, is_vip')
     .eq('id', courseId)
     .eq('published', true)
     .single()
@@ -53,8 +55,41 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Curso não encontrado' }, { status: 404 })
   }
 
-  const course = courseData as unknown as CourseRow
+  const course = courseData as unknown as CourseRow & { is_vip: boolean }
+
+  // Cursos VIP só são acessíveis via plano de mentoria
+  if (course.is_vip) {
+    return NextResponse.json(
+      { error: 'Este curso está disponível apenas para mentorados. Escolha um plano de mentoria.' },
+      { status: 403 }
+    )
+  }
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
+  const isStub = (process.env.CHECKOUT_PROVIDER ?? 'stub') === 'stub'
+
+  // Stub provider: criar matrícula imediatamente (sem webhook)
+  if (isStub) {
+    // Idempotente: não duplicar matrícula existente
+    const { data: existing } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('course_id', course.id)
+      .maybeSingle()
+
+    if (!existing) {
+      const enrollment = await createEnrollmentWithAccessWindow(supabase, {
+        userId: user.id,
+        courseId: course.id,
+      })
+      if (enrollment.error) {
+        return NextResponse.json({ error: enrollment.error }, { status: 500 })
+      }
+    }
+
+    return NextResponse.json({ url: `${baseUrl}/checkout/sucesso?course=${course.slug}` })
+  }
 
   try {
     const { url } = await getCheckoutProvider().createCourseCheckout({

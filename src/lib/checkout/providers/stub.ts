@@ -12,4 +12,7 @@ export const stubProvider: CheckoutProvider = {
   async createPlanCheckout(): Promise<CheckoutSession> {
     return { url: '/checkout/sucesso?stub=1' }
   },
+  async createCartCheckout(): Promise<CheckoutSession> {
+    return { url: '/checkout/sucesso?stub=1&cart=1' }
+  },
 }

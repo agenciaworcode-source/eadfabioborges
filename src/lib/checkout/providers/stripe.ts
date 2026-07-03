@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 import type {
   CheckoutProvider,
   CheckoutSession,
+  CreateCartCheckoutParams,
   CreateCourseCheckoutParams,
   CreatePlanCheckoutParams,
 } from '../types'
@@ -15,9 +16,7 @@ function getStripe(): Stripe {
 }
 
 export const stripeProvider: CheckoutProvider = {
-  async createCourseCheckout(
-    params: CreateCourseCheckoutParams,
-  ): Promise<CheckoutSession> {
+  async createCourseCheckout(params: CreateCourseCheckoutParams): Promise<CheckoutSession> {
     const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
       customer_email: params.userEmail,
@@ -42,9 +41,7 @@ export const stripeProvider: CheckoutProvider = {
     return { url: session.url! }
   },
 
-  async createPlanCheckout(
-    params: CreatePlanCheckoutParams,
-  ): Promise<CheckoutSession> {
+  async createPlanCheckout(params: CreatePlanCheckoutParams): Promise<CheckoutSession> {
     const envKey =
       params.billingPeriod === 'annual'
         ? `STRIPE_PRICE_${params.planId.toUpperCase()}_ANNUAL`
@@ -53,7 +50,7 @@ export const stripeProvider: CheckoutProvider = {
     const priceId = process.env[envKey]
     if (!priceId) {
       throw new Error(
-        `Stripe Price ID não configurado para ${envKey}. Configure a variável de ambiente.`,
+        `Stripe Price ID não configurado para ${envKey}. Configure a variável de ambiente.`
       )
     }
 
@@ -66,6 +63,30 @@ export const stripeProvider: CheckoutProvider = {
         planId: params.planId,
         userId: params.userId,
         billingPeriod: params.billingPeriod,
+      },
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+    })
+    return { url: session.url! }
+  },
+
+  async createCartCheckout(params: CreateCartCheckoutParams): Promise<CheckoutSession> {
+    const courseIds = params.courses.map((course) => course.courseId)
+    const session = await getStripe().checkout.sessions.create({
+      mode: 'payment',
+      customer_email: params.userEmail,
+      line_items: params.courses.map((course) => ({
+        quantity: 1,
+        price_data: {
+          currency: 'brl',
+          unit_amount: course.priceAmountCents,
+          product_data: { name: course.courseTitle },
+        },
+      })),
+      metadata: {
+        type: 'cart',
+        courseIds: JSON.stringify(courseIds),
+        userId: params.userId,
       },
       success_url: params.successUrl,
       cancel_url: params.cancelUrl,

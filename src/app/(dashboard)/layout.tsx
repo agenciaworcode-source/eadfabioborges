@@ -3,18 +3,14 @@ import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { TopbarCrumb } from '@/components/layout/TopbarCrumb'
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/login')
+    redirect('/auth/login?returnUrl=/dashboard')
   }
 
   const { data: profileData } = await supabase
@@ -23,7 +19,11 @@ export default async function DashboardLayout({
     .eq('id', user.id)
     .single()
 
-  const profile = profileData as { name: string; avatar_url: string | null; plan: string | null } | null
+  const profile = profileData as {
+    name: string
+    avatar_url: string | null
+    plan: string | null
+  } | null
 
   const displayName =
     profile?.name ||
@@ -43,18 +43,18 @@ export default async function DashboardLayout({
     planKey === 'free'
       ? 'plan-free'
       : planKey === 'prata' || planKey === 'monthly'
-      ? 'plan-prata'
-      : planKey === 'diamante' || planKey === 'lifetime'
-      ? 'plan-diamante'
-      : 'plan-ouro'
+        ? 'plan-prata'
+        : planKey === 'diamante' || planKey === 'lifetime'
+          ? 'plan-diamante'
+          : 'plan-ouro'
   const planLabel =
     planKey === 'free'
       ? 'Gratuito'
       : planKey === 'prata' || planKey === 'monthly'
-      ? 'Prata'
-      : planKey === 'diamante' || planKey === 'lifetime'
-      ? 'Diamante'
-      : 'Ouro'
+        ? 'Prata'
+        : planKey === 'diamante' || planKey === 'lifetime'
+          ? 'Diamante'
+          : 'Ouro'
 
   return (
     <div className="shell">
@@ -64,16 +64,6 @@ export default async function DashboardLayout({
         <div className="topbar">
           <TopbarCrumb />
           <div className="flex aic gap16">
-            <button
-              className="btn-icn"
-              style={{ background: '#fff', border: '1px solid var(--line)' }}
-              aria-label="Notificações"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-              </svg>
-            </button>
             <div className="avatar sm">{initials}</div>
           </div>
         </div>

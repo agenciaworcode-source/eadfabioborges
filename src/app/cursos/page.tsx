@@ -1,22 +1,24 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { PublicNav } from '@/components/layout/PublicNav'
 import { PublicFooter } from '@/components/layout/PublicFooter'
+import { AddToCartButton } from '@/components/checkout/AddToCartButton'
 import { createClient } from '@/lib/supabase/server'
 
-const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? 'https://ead.fabioborgesoficial.com.br'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://ead.fabioborgesoficial.com.br'
 
-export const dynamic = 'force-dynamic'
+// ISR: revalida o catálogo a cada 60 s — cursos raramente mudam
+export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Cursos | Mentoria Fabio Borges',
+  title: 'Cursos | Mentoria Fábio Borges',
   description:
-    'Explore o catalogo de cursos praticos de estetica avancada, micropigmentacao e gestao da Mentoria Fabio Borges.',
+    'Explore o catálogo de cursos práticos de estética avançada, micropigmentação e gestão da Mentoria Fábio Borges.',
   openGraph: {
-    title: 'Cursos | Mentoria Fabio Borges',
+    title: 'Cursos | Mentoria Fábio Borges',
     description:
-      'Explore o catalogo de cursos praticos de estetica avancada, micropigmentacao e gestao da Mentoria Fabio Borges.',
+      'Explore o catálogo de cursos práticos de estética avançada, micropigmentação e gestão da Mentoria Fábio Borges.',
     url: `${APP_URL}/cursos`,
     type: 'website',
     images: [{ url: `${APP_URL}/og-default.png`, width: 1200, height: 630 }],
@@ -54,10 +56,10 @@ interface CourseRow {
 }
 
 const LEVEL_LABELS: Record<string, string> = {
-  todos: 'Todos os niveis',
+  todos: 'Todos os níveis',
   iniciante: 'Iniciante',
-  intermediario: 'Intermediario',
-  avancado: 'Avancado',
+  intermediario: 'Intermediário',
+  avancado: 'Avançado',
 }
 
 const THUMB_VARIANTS = ['', ' b2', ' b3', ' b4']
@@ -67,7 +69,7 @@ function normalizeFilter(value?: string): string {
 }
 
 function formatPrice(price: number | null, isVip: boolean): string {
-  if (isVip) return 'Incluso no plano'
+  if (isVip) return 'Incluso nos planos'
   if (!price) return 'Gratuito'
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)
 }
@@ -112,10 +114,12 @@ export default async function CursosPage({ searchParams }: PageProps) {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('courses')
-    .select(`
+    .select(
+      `
       id, slug, title, description, price, is_vip, thumbnail_url, level, category,
       modules(id, lessons(id, duration_secs))
-    `)
+    `
+    )
     .eq('published', true)
     .order('created_at', { ascending: false })
 
@@ -138,7 +142,9 @@ export default async function CursosPage({ searchParams }: PageProps) {
   })
 
   const totalLessons = courses.reduce((sum, course) => sum + courseStats(course).lessonCount, 0)
-  const activeFilterCount = [selectedLevel && selectedLevel !== 'todos', selectedCategory].filter(Boolean).length
+  const activeFilterCount = [selectedLevel && selectedLevel !== 'todos', selectedCategory].filter(
+    Boolean
+  ).length
 
   return (
     <>
@@ -160,6 +166,7 @@ export default async function CursosPage({ searchParams }: PageProps) {
         .catalog-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; }
         .course-card{ background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--shadow-xs); transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; display:flex; flex-direction:column; min-width:0; }
         .course-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow); border-color:var(--line-2); }
+        .course-card-link{ display:flex; flex-direction:column; flex:1; color:inherit; text-decoration:none; }
         .course-card .thumb{ border-radius:0; aspect-ratio:16/9; }
         .course-card .body{ padding:18px; display:flex; flex-direction:column; flex:1; }
         .course-card h2{ font-size:18px; line-height:1.2; letter-spacing:-.02em; margin:10px 0 0; }
@@ -169,10 +176,11 @@ export default async function CursosPage({ searchParams }: PageProps) {
         .course-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:16px 0; padding:12px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
         .course-stats span{ display:block; font-size:12px; color:var(--muted); }
         .course-stats b{ display:block; font-size:13px; color:var(--ink); font-weight:700; margin-bottom:1px; }
-        .course-card .foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:auto; }
+        .course-card .foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:auto; padding-top:12px; }
         .course-card .price{ font-size:15px; color:var(--ink); }
         .vip-badge{ background:var(--indigo-tint); color:var(--indigo-600); font-size:12px; font-weight:700; padding:5px 10px; border-radius:980px; }
         .free-badge{ background:var(--green-tint); color:#178a4a; font-size:12px; font-weight:700; padding:5px 10px; border-radius:980px; }
+        .card-cta{ padding:0 18px 18px; display:flex; flex-direction:column; gap:8px; }
         .empty-state{ text-align:center; padding:80px 20px; background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); }
         .empty-state h2{ font-size:24px; margin-bottom:10px; color:var(--ink-2); font-weight:600; }
         .empty-state p{ color:var(--muted); font-size:15px; }
@@ -196,14 +204,14 @@ export default async function CursosPage({ searchParams }: PageProps) {
       <header className="courses-hero">
         <div className="wrap courses-hero-grid">
           <div>
-            <span className="eyebrow">Catalogo</span>
-            <h1>Todos os cursos disponiveis</h1>
+            <span className="eyebrow">Catálogo</span>
+            <h1>Todos os cursos disponíveis</h1>
             <p>
-              Escolha um curso publicado pela equipe e veja o conteudo, formato de acesso e detalhes
+              Escolha um curso publicado pela equipe e veja o conteúdo, formato de acesso e detalhes
               antes de se matricular.
             </p>
           </div>
-          <div className="catalog-summary" aria-label="Resumo do catalogo">
+          <div className="catalog-summary" aria-label="Resumo do catálogo">
             <div>
               <div className="n">{courses.length}</div>
               <div className="l">cursos publicados</div>
@@ -214,7 +222,7 @@ export default async function CursosPage({ searchParams }: PageProps) {
             </div>
             <div>
               <div className="n">{totalLessons}</div>
-              <div className="l">aulas no catalogo</div>
+              <div className="l">aulas no catálogo</div>
             </div>
           </div>
         </div>
@@ -224,7 +232,7 @@ export default async function CursosPage({ searchParams }: PageProps) {
         <div className="wrap">
           <div className="filter-band">
             <div className="filter-group">
-              <span className="filter-label">Nivel</span>
+              <span className="filter-label">Nível</span>
               <Link
                 className={`filter-chip${!selectedLevel || selectedLevel === 'todos' ? ' on' : ''}`}
                 href={buildFilterHref({ categoria: selectedCategory })}
@@ -273,7 +281,7 @@ export default async function CursosPage({ searchParams }: PageProps) {
 
           {courses.length === 0 ? (
             <div className="empty-state">
-              <h2>Nenhum curso disponivel no momento</h2>
+              <h2>Nenhum curso disponível no momento</h2>
               <p>Quando um curso for publicado no admin, ele aparece automaticamente aqui.</p>
             </div>
           ) : filteredCourses.length === 0 ? (
@@ -288,54 +296,78 @@ export default async function CursosPage({ searchParams }: PageProps) {
             <div className="catalog-grid">
               {filteredCourses.map((course, index) => {
                 const isVip = course.is_vip ?? false
+                const isPaid = !isVip && Boolean(course.price && course.price > 0)
+                const isFree = !isVip && !course.price
                 const stats = courseStats(course)
                 return (
-                  <Link key={course.id} className="course-card" href={`/cursos/${course.slug}`}>
-                    <div className={`thumb${THUMB_VARIANTS[index % THUMB_VARIANTS.length]}`}>
-                      {course.thumbnail_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={course.thumbnail_url}
-                          alt={course.title}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <CourseIcon />
+                  <article key={course.id} className="course-card">
+                    <Link className="course-card-link" href={`/cursos/${course.slug}`}>
+                      <div className={`thumb${THUMB_VARIANTS[index % THUMB_VARIANTS.length]}`}>
+                        {course.thumbnail_url ? (
+                          <Image
+                            src={course.thumbnail_url}
+                            alt={course.title}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 980px) 50vw, 33vw"
+                            style={{ objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <CourseIcon />
+                        )}
+                      </div>
+                      <div className="body">
+                        <div className="meta-row">
+                          <span className="meta-pill">
+                            {LEVEL_LABELS[course.level ?? 'todos'] ?? course.level}
+                          </span>
+                          {course.category && <span className="meta-pill">{course.category}</span>}
+                        </div>
+
+                        <h2>{course.title}</h2>
+                        <p className="desc">
+                          {course.description || 'Conteúdo do curso em preparação pela equipe.'}
+                        </p>
+
+                        <div className="course-stats" aria-label={`Resumo de ${course.title}`}>
+                          <span>
+                            <b>{stats.moduleCount}</b>
+                            módulo{stats.moduleCount !== 1 ? 's' : ''}
+                          </span>
+                          <span>
+                            <b>{stats.lessonCount}</b>
+                            aula{stats.lessonCount !== 1 ? 's' : ''}
+                          </span>
+                          <span>
+                            <b>{stats.durationLabel}</b>
+                            duração
+                          </span>
+                        </div>
+
+                        <div className="foot">
+                          <span className="price">{formatPrice(course.price, isVip)}</span>
+                          {isVip && <span className="vip-badge">Qualquer plano</span>}
+                          {isFree && <span className="free-badge">Grátis</span>}
+                        </div>
+                      </div>
+                    </Link>
+
+                    <div className="card-cta">
+                      {isPaid && <AddToCartButton courseId={course.id} courseSlug={course.slug} />}
+                      {isVip && (
+                        <Link href="/planos" className="btn btn-secondary btn-block btn-sm">
+                          Ver planos
+                        </Link>
+                      )}
+                      {isFree && (
+                        <Link
+                          href={`/cursos/${course.slug}`}
+                          className="btn btn-ghost btn-block btn-sm"
+                        >
+                          Acessar gratuitamente
+                        </Link>
                       )}
                     </div>
-                    <div className="body">
-                      <div className="meta-row">
-                        <span className="meta-pill">{LEVEL_LABELS[course.level ?? 'todos'] ?? course.level}</span>
-                        {course.category && <span className="meta-pill">{course.category}</span>}
-                      </div>
-
-                      <h2>{course.title}</h2>
-                      <p className="desc">
-                        {course.description || 'Conteudo do curso em preparacao pela equipe.'}
-                      </p>
-
-                      <div className="course-stats" aria-label={`Resumo de ${course.title}`}>
-                        <span>
-                          <b>{stats.moduleCount}</b>
-                          modulo{stats.moduleCount !== 1 ? 's' : ''}
-                        </span>
-                        <span>
-                          <b>{stats.lessonCount}</b>
-                          aula{stats.lessonCount !== 1 ? 's' : ''}
-                        </span>
-                        <span>
-                          <b>{stats.durationLabel}</b>
-                          duracao
-                        </span>
-                      </div>
-
-                      <div className="foot">
-                        <span className="price">{formatPrice(course.price, isVip)}</span>
-                        {isVip && <span className="vip-badge">Plano</span>}
-                        {!isVip && !course.price && <span className="free-badge">Gratis</span>}
-                      </div>
-                    </div>
-                  </Link>
+                  </article>
                 )
               })}
             </div>

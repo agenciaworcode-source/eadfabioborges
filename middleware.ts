@@ -6,10 +6,10 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Para multi-região, substituir por Redis/Upstash.
 const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minuto
 const RATE_LIMIT_MAX: Record<string, number> = {
-  '/api/checkout': 10,   // 10 checkouts/min por IP
-  '/api/webhooks': 60,   // webhooks do Stripe/MP — permitir retries
-  '/auth/login':  20,    // 20 tentativas de login/min por IP
-  '/auth/cadastro': 10,  // 10 cadastros/min por IP
+  '/api/checkout': 10, // 10 checkouts/min por IP
+  '/api/webhooks': 60, // webhooks do Stripe/MP — permitir retries
+  '/auth/login': 20, // 20 tentativas de login/min por IP
+  '/auth/cadastro': 10, // 10 cadastros/min por IP
 }
 
 const rateMap = new Map<string, { count: number; resetAt: number }>()
@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
     if (isRateLimited(ip, prefix)) {
       return NextResponse.json(
         { error: 'Muitas requisições. Tente novamente em instantes.' },
-        { status: 429 },
+        { status: 429 }
       )
     }
   }
@@ -70,9 +70,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -96,11 +94,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAdmin && user) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
 
     if (profile?.role !== 'admin') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
@@ -112,7 +106,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/dashboard',
     '/dashboard/:path*',
+    '/admin',
     '/admin/:path*',
     '/api/checkout/:path*',
     '/api/webhooks/:path*',

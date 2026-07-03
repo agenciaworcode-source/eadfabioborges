@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const token_hash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
+  const next = searchParams.get('next')
 
   if (!token_hash || !type) {
     return NextResponse.redirect(`${origin}/auth/login?error=invalid_link`)
@@ -20,8 +21,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/auth/login?error=link_expired`)
   }
 
+  if (type === 'recovery') {
+    return NextResponse.redirect(`${origin}/auth/nova-senha`)
+  }
+
   // Enviar boas-vindas apenas no primeiro login (cadastro por email)
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (user?.email) {
     const created = new Date(user.created_at).getTime()
@@ -30,19 +37,18 @@ export async function GET(request: NextRequest) {
 
     if (isFirstLogin) {
       const name =
-        (user.user_metadata?.full_name as string | undefined) ??
-        user.email.split('@')[0] ??
-        'Aluno'
+        (user.user_metadata?.full_name as string | undefined) ?? user.email.split('@')[0] ?? 'Aluno'
       void sendEmail(
         user.email,
         'Bem-vindo(a) à Mentoria Fábio Borges!',
         BoasVindasEmail({
           name,
           dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-        }),
+        })
       )
     }
   }
 
-  return NextResponse.redirect(`${origin}/dashboard`)
+  const redirectPath = next?.startsWith('/') ? next : '/dashboard'
+  return NextResponse.redirect(`${origin}${redirectPath}`)
 }

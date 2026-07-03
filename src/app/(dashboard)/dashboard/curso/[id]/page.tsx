@@ -11,6 +11,9 @@ interface LessonRow {
   title: string
   type: 'video' | 'text' | 'pdf' | 'embed'
   vimeo_id: string | null
+  youtube_url: string | null
+  video_thumbnail_url: string | null
+  completion_percent: number
   content_body: string | null
   embed_url: string | null
   pdf_url: string | null
@@ -59,6 +62,9 @@ export default async function CursoPage({ params }: PageProps) {
           title,
           type,
           vimeo_id,
+          youtube_url,
+          video_thumbnail_url,
+          completion_percent,
           content_body,
           embed_url,
           pdf_url,
@@ -91,12 +97,9 @@ export default async function CursoPage({ params }: PageProps) {
       .gt('period_end', new Date().toISOString()),
   ])
 
-  const hasAccess =
-    (enrollments?.length ?? 0) > 0 || (subscriptions?.length ?? 0) > 0
+  const hasAccess = (enrollments?.length ?? 0) > 0 || (subscriptions?.length ?? 0) > 0
 
-  const sortedModules = [...(course.modules ?? [])].sort(
-    (a, b) => a.order - b.order
-  )
+  const sortedModules = [...(course.modules ?? [])].sort((a, b) => a.order - b.order)
 
   return (
     <CoursePlayerLayout

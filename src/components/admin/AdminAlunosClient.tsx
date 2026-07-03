@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useMemo } from 'react'
 import { AdminAlunoModal, type ModalUser } from './AdminAlunoModal'
 
@@ -20,16 +21,27 @@ interface AdminAlunosClientProps {
 }
 
 const PLAN_LABELS: Record<string, string> = {
-  free: 'Free', prata: 'Prata', ouro: 'Ouro', diamante: 'Diamante',
+  free: 'Free',
+  prata: 'Prata',
+  ouro: 'Ouro',
+  diamante: 'Diamante',
 }
 const PLAN_CLASSES: Record<string, string> = {
-  free: 'plan-free', prata: 'plan-prata', ouro: 'plan-ouro', diamante: 'plan-diamante',
+  free: 'plan-free',
+  prata: 'plan-prata',
+  ouro: 'plan-ouro',
+  diamante: 'plan-diamante',
 }
 
 const PAGE_SIZE = 20
 
 function initials(name: string) {
-  return name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
 }
 
 export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminAlunosClientProps) {
@@ -47,6 +59,10 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
   const [enrolling, setEnrolling] = useState(false)
   const [enrollMsg, setEnrollMsg] = useState('')
   const [showEnrollForm, setShowEnrollForm] = useState(false)
+  const [userSuggestions, setUserSuggestions] = useState<
+    Array<{ id: string; name: string; email: string }>
+  >([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
 
   const filtered = useMemo(() => {
     let result = users.filter((u) => {
@@ -61,22 +77,59 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
         (enrollFilter === 'no-enroll' && u.enrollmentCount === 0)
       return matchSearch && matchPlan && matchEnroll
     })
-    if (sortBy === 'name') result = [...result].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
-    if (sortBy === 'enrollments') result = [...result].sort((a, b) => b.enrollmentCount - a.enrollmentCount)
+    if (sortBy === 'name')
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+    if (sortBy === 'enrollments')
+      result = [...result].sort((a, b) => b.enrollmentCount - a.enrollmentCount)
     return result
   }, [users, search, planFilter, enrollFilter, sortBy])
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
-  const handleSearchChange = (v: string) => { setSearch(v); setPage(0) }
-  const handlePlanChange = (v: string) => { setPlanFilter(v); setPage(0) }
-  const handleEnrollFilterChange = (v: string) => { setEnrollFilter(v as 'all' | 'enrolled' | 'no-enroll'); setPage(0) }
-  const handleSortChange = (v: string) => { setSortBy(v as 'recent' | 'name' | 'enrollments'); setPage(0) }
+  const handleSearchChange = (v: string) => {
+    setSearch(v)
+    setPage(0)
+  }
+  const handlePlanChange = (v: string) => {
+    setPlanFilter(v)
+    setPage(0)
+  }
+  const handleEnrollFilterChange = (v: string) => {
+    setEnrollFilter(v as 'all' | 'enrolled' | 'no-enroll')
+    setPage(0)
+  }
+  const handleSortChange = (v: string) => {
+    setSortBy(v as 'recent' | 'name' | 'enrollments')
+    setPage(0)
+  }
+
+  function handleEnrollEmailChange(v: string) {
+    setEnrollEmail(v)
+    setEnrollMsg('')
+    if (v.length >= 2) {
+      const q = v.toLowerCase()
+      const matches = users
+        .filter((u) => u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q))
+        .slice(0, 6)
+      setUserSuggestions(matches)
+      setShowSuggestions(matches.length > 0)
+    } else {
+      setUserSuggestions([])
+      setShowSuggestions(false)
+    }
+  }
+
+  function selectSuggestion(u: { id: string; name: string; email: string }) {
+    setEnrollEmail(u.email)
+    setShowSuggestions(false)
+    setUserSuggestions([])
+  }
 
   async function handleEnroll(e: React.FormEvent) {
     e.preventDefault()
     if (!enrollEmail || !enrollCourseId) return
+    setShowSuggestions(false)
     setEnrolling(true)
     setEnrollMsg('')
     try {
@@ -109,8 +162,8 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
   }
 
   function handlePlanChanged(userId: string, newPlan: string) {
-    setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, plan: newPlan } : u))
-    setSelectedUser((prev) => prev && prev.id === userId ? { ...prev, plan: newPlan } : prev)
+    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, plan: newPlan } : u)))
+    setSelectedUser((prev) => (prev && prev.id === userId ? { ...prev, plan: newPlan } : prev))
   }
 
   return (
@@ -130,8 +183,12 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
       `}</style>
 
       <div className="topbar">
-        <div className="crumb"><a href="/admin">Admin</a> <span>›</span> <b>Alunos</b></div>
-        <div className="avatar sm" style={{ background: 'var(--ink)' }}>FB</div>
+        <div className="crumb">
+          <a href="/admin">Admin</a> <span>›</span> <b>Alunos</b>
+        </div>
+        <div className="avatar sm" style={{ background: 'var(--ink)' }}>
+          FB
+        </div>
       </div>
 
       <div className="content wide">
@@ -139,11 +196,21 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
           <div>
             <h1 style={{ fontSize: '26px' }}>Alunos</h1>
             <p className="muted" style={{ marginTop: '5px', fontSize: '14px' }}>
-              {filtered.length} aluno{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}
+              {filtered.length} aluno{filtered.length !== 1 ? 's' : ''} encontrado
+              {filtered.length !== 1 ? 's' : ''}
             </p>
           </div>
           <button className="btn btn-primary" onClick={() => setShowEnrollForm(!showEnrollForm)}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
             Matricular manualmente
           </button>
         </div>
@@ -151,26 +218,114 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
         {showEnrollForm && (
           <div className="enroll-form" style={{ marginTop: '16px' }}>
             <h3 style={{ fontSize: '15px', marginBottom: '14px' }}>Matricular aluno manualmente</h3>
-            <form onSubmit={(e) => { void handleEnroll(e) }}>
+            <form
+              onSubmit={(e) => {
+                void handleEnroll(e)
+              }}
+            >
               <div className="g2">
-                <div className="field">
-                  <label>E-mail do aluno</label>
-                  <input className="input" type="email" placeholder="aluno@email.com" value={enrollEmail} onChange={(e) => setEnrollEmail(e.target.value)} required />
+                <div className="field" style={{ position: 'relative' }}>
+                  <label>Aluno (nome ou e-mail)</label>
+                  <input
+                    className="input"
+                    type="text"
+                    placeholder="Buscar por nome ou e-mail..."
+                    value={enrollEmail}
+                    onChange={(e) => handleEnrollEmailChange(e.target.value)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                    onFocus={() =>
+                      enrollEmail.length >= 2 &&
+                      userSuggestions.length > 0 &&
+                      setShowSuggestions(true)
+                    }
+                    autoComplete="off"
+                    required
+                  />
+                  {showSuggestions && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        zIndex: 50,
+                        background: '#fff',
+                        border: '1px solid var(--line-2)',
+                        borderRadius: 'var(--r)',
+                        boxShadow: 'var(--shadow)',
+                        marginTop: '2px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {userSuggestions.map((u) => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onMouseDown={() => selectSuggestion(u)}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            textAlign: 'left',
+                            padding: '9px 12px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            lineHeight: 1.4,
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.background = 'var(--surface-2)')
+                          }
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                        >
+                          <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{u.name}</span>
+                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>
+                            {u.email}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="field">
                   <label>Curso</label>
-                  <select className="input" value={enrollCourseId} onChange={(e) => setEnrollCourseId(e.target.value)} required>
+                  <select
+                    className="input"
+                    value={enrollCourseId}
+                    onChange={(e) => setEnrollCourseId(e.target.value)}
+                    required
+                  >
                     <option value="">Selecionar curso...</option>
                     {courseOptions.map((c) => (
-                      <option key={c.id} value={c.id}>{c.title}</option>
+                      <option key={c.id} value={c.id}>
+                        {c.title}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="flex gap12" style={{ marginTop: '14px', alignItems: 'center' }}>
-                <button className="btn btn-primary btn-sm" type="submit" disabled={enrolling}>{enrolling ? 'Matriculando...' : 'Confirmar matrícula'}</button>
-                <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setShowEnrollForm(false); setEnrollMsg('') }}>Cancelar</button>
-                {enrollMsg && <span className={enrollMsg.startsWith('Erro') ? 'muted' : 'blue'} style={{ fontSize: '13px' }}>{enrollMsg}</span>}
+                <button className="btn btn-primary btn-sm" type="submit" disabled={enrolling}>
+                  {enrolling ? 'Matriculando...' : 'Confirmar matrícula'}
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  type="button"
+                  onClick={() => {
+                    setShowEnrollForm(false)
+                    setEnrollMsg('')
+                  }}
+                >
+                  Cancelar
+                </button>
+                {enrollMsg && (
+                  <span
+                    className={enrollMsg.startsWith('Erro') ? 'muted' : 'blue'}
+                    style={{ fontSize: '13px' }}
+                  >
+                    {enrollMsg}
+                  </span>
+                )}
               </div>
             </form>
           </div>
@@ -178,17 +333,40 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
 
         <div className="toolbar">
           <div className="input-icn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-            <input className="input" placeholder="Buscar por nome ou e-mail..." value={search} onChange={(e) => handleSearchChange(e.target.value)} />
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              className="input"
+              placeholder="Buscar por nome ou e-mail..."
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
           </div>
-          <select className="sel" value={planFilter} onChange={(e) => handlePlanChange(e.target.value)}>
+          <select
+            className="sel"
+            value={planFilter}
+            onChange={(e) => handlePlanChange(e.target.value)}
+          >
             <option value="all">Todos os planos</option>
             <option value="free">Free</option>
             <option value="prata">Prata</option>
             <option value="ouro">Ouro</option>
             <option value="diamante">Diamante</option>
           </select>
-          <select className="sel" value={enrollFilter} onChange={(e) => handleEnrollFilterChange(e.target.value)}>
+          <select
+            className="sel"
+            value={enrollFilter}
+            onChange={(e) => handleEnrollFilterChange(e.target.value)}
+          >
             <option value="all">Todas as matrículas</option>
             <option value="enrolled">Com matrícula</option>
             <option value="no-enroll">Sem matrícula</option>
@@ -201,81 +379,149 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
         </div>
 
         <div className="card">
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>Aluno</th>
-                <th>Plano</th>
-                <th>Matrículas</th>
-                <th>Certificados</th>
-                <th>Membro desde</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.length === 0 && (
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead>
                 <tr>
-                  <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: '24px' }}>Nenhum aluno encontrado</td>
+                  <th>Aluno</th>
+                  <th>Plano</th>
+                  <th>Matrículas</th>
+                  <th>Certificados</th>
+                  <th>Membro desde</th>
+                  <th></th>
                 </tr>
-              )}
-              {paginated.map((u) => {
-                const plan = (u.plan ?? 'free').toLowerCase()
-                return (
-                  <tr key={u.id}>
-                    <td>
-                      <div className="flex aic gap12">
-                        <div className="avatar sm">{initials(u.name)}</div>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: '14px' }}>{u.name}</div>
-                          <div className="muted" style={{ fontSize: '12px' }}>{u.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`plan-badge ${PLAN_CLASSES[plan] ?? 'plan-free'}`} style={{ padding: '3px 10px' }}>
-                        {PLAN_LABELS[plan] ?? u.plan ?? 'Free'}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <b style={{ fontSize: '14px' }}>{u.enrollmentCount}</b>
-                        {u.enrollmentCount > 0 && (
-                          <span className="badge" style={{ background: '#e8f4ff', color: '#1a6aab', fontSize: '11px' }}>
-                            ativo{u.enrollmentCount !== 1 ? 's' : ''}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td style={{ fontWeight: u.certificateCount > 0 ? 600 : 400, color: u.certificateCount > 0 ? 'var(--ink)' : 'var(--muted)' }}>
-                      {u.certificateCount > 0 ? u.certificateCount : '—'}
-                    </td>
-                    <td>
-                      {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(u.created_at))}
-                    </td>
-                    <td>
-                      <button
-                        className="iconbtn"
-                        onClick={() => setSelectedUser(u)}
-                        title="Ver detalhes"
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
-                      </button>
+              </thead>
+              <tbody>
+                {paginated.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="muted"
+                      style={{ textAlign: 'center', padding: '24px' }}
+                    >
+                      Nenhum aluno encontrado
                     </td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                )}
+                {paginated.map((u) => {
+                  const plan = (u.plan ?? 'free').toLowerCase()
+                  return (
+                    <tr key={u.id}>
+                      <td>
+                        <div className="flex aic gap12">
+                          <div className="avatar sm">{initials(u.name)}</div>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '14px' }}>{u.name}</div>
+                            <div className="muted" style={{ fontSize: '12px' }}>
+                              {u.email}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span
+                          className={`plan-badge ${PLAN_CLASSES[plan] ?? 'plan-free'}`}
+                          style={{ padding: '3px 10px' }}
+                        >
+                          {PLAN_LABELS[plan] ?? u.plan ?? 'Free'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <b style={{ fontSize: '14px' }}>{u.enrollmentCount}</b>
+                          {u.enrollmentCount > 0 && (
+                            <span
+                              className="badge"
+                              style={{ background: '#e8f4ff', color: '#1a6aab', fontSize: '11px' }}
+                            >
+                              ativo{u.enrollmentCount !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td
+                        style={{
+                          fontWeight: u.certificateCount > 0 ? 600 : 400,
+                          color: u.certificateCount > 0 ? 'var(--ink)' : 'var(--muted)',
+                        }}
+                      >
+                        {u.certificateCount > 0 ? u.certificateCount : '—'}
+                      </td>
+                      <td>
+                        {new Intl.DateTimeFormat('pt-BR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        }).format(new Date(u.created_at))}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            className="iconbtn"
+                            onClick={() => setSelectedUser(u)}
+                            title="Abrir modal"
+                          >
+                            <svg
+                              width="15"
+                              height="15"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          </button>
+                          <Link
+                            className="iconbtn"
+                            href={`/admin/alunos/${u.id}`}
+                            title="Abrir página do aluno"
+                          >
+                            <svg
+                              width="15"
+                              height="15"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M14 3h7v7" />
+                              <path d="M10 14 21 3" />
+                              <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
+                            </svg>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {filtered.length > PAGE_SIZE && (
           <div className="flex between aic" style={{ marginTop: '16px' }}>
             <span className="muted" style={{ fontSize: '13px' }}>
-              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} de {filtered.length}
+              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} de{' '}
+              {filtered.length}
             </span>
             <div className="flex gap8">
-              <button className="btn btn-ghost btn-sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Anterior</button>
-              <button className="btn btn-ghost btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Próximo</button>
+              <button
+                className="btn btn-ghost btn-sm"
+                disabled={page === 0}
+                onClick={() => setPage(page - 1)}
+              >
+                Anterior
+              </button>
+              <button
+                className="btn btn-ghost btn-sm"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage(page + 1)}
+              >
+                Próximo
+              </button>
             </div>
           </div>
         )}

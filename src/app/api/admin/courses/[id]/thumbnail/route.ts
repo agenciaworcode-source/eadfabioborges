@@ -11,10 +11,7 @@ function extFromType(type: string): string {
   return 'jpg'
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } },
-) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient()
 
   const {
@@ -50,15 +47,12 @@ export async function POST(
   if (!ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json(
       { error: 'Tipo de arquivo inválido. Use JPEG, PNG ou WebP.' },
-      { status: 400 },
+      { status: 400 }
     )
   }
 
   if (file.size > MAX_BYTES) {
-    return NextResponse.json(
-      { error: 'Arquivo muito grande. Máximo 5 MB.' },
-      { status: 413 },
-    )
+    return NextResponse.json({ error: 'Arquivo muito grande. Máximo 5 MB.' }, { status: 413 })
   }
 
   const bytes = await file.arrayBuffer()
@@ -75,7 +69,9 @@ export async function POST(
   }
 
   const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  const thumbnailUrl = urlData.publicUrl
+  // Adiciona cache-buster para forçar o browser a recarregar a imagem
+  const baseUrl = urlData.publicUrl
+  const thumbnailUrl = `${baseUrl}?t=${Date.now()}`
 
   const { error: updateError } = await supabase
     .from('courses')

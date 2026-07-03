@@ -4,7 +4,7 @@ import { PLAN_LABELS, PLAN_COLORS } from '@/config/plans'
 
 interface SubRow {
   id: string
-  plan: string
+  plan_tier: string
   status: string
   period_start: string
   users: { name: string; email: string } | null
@@ -40,9 +40,7 @@ export default async function AdminPage() {
   const supabase = createClient()
 
   // Preços dos planos (fonte única: tabela plans)
-  const { data: plansData } = await supabase
-    .from('plans')
-    .select('id, price_monthly')
+  const { data: plansData } = await supabase.from('plans').select('id, price_monthly')
   const planPrices = Object.fromEntries(
     ((plansData ?? []) as Array<{ id: string; price_monthly: number }>).map((p) => [
       p.id,
@@ -98,13 +96,12 @@ export default async function AdminPage() {
   // Stats: receita do mês
   const { data: monthlySubsData } = await supabase
     .from('subscriptions')
-    .select('plan')
+    .select('plan_tier')
     .eq('status', 'active')
     .gte('period_start', startOfMonth.toISOString())
 
   const monthlyRevenue = (monthlySubsData ?? []).reduce(
-    (sum, s: { plan: string }) =>
-      sum + (planPrices[(s.plan ?? '').toLowerCase()] ?? 0),
+    (sum, s) => sum + (planPrices[(s.plan_tier ?? '').toLowerCase()] ?? 0),
     0
   )
 
@@ -122,9 +119,7 @@ export default async function AdminPage() {
 
   const enrollGrowth =
     enrollsLastMonth && enrollsLastMonth > 0
-      ? Math.round(
-          (((enrollsThisMonth ?? 0) - enrollsLastMonth) / enrollsLastMonth) * 100
-        )
+      ? Math.round((((enrollsThisMonth ?? 0) - enrollsLastMonth) / enrollsLastMonth) * 100)
       : null
 
   // Gráfico: matrículas por dia nos últimos 30 dias
@@ -144,7 +139,7 @@ export default async function AdminPage() {
     dayMap[key] = 0
   }
   for (const e of enrollmentsData ?? []) {
-    const key = ((e as unknown as { enrolled_at: string }).enrolled_at).slice(0, 10)
+    const key = (e as unknown as { enrolled_at: string }).enrolled_at.slice(0, 10)
     if (key in dayMap) dayMap[key]++
   }
 
@@ -156,10 +151,7 @@ export default async function AdminPage() {
   }))
 
   // Distribuição por plano
-  const { data: planDistData } = await supabase
-    .from('users')
-    .select('plan')
-    .neq('role', 'admin')
+  const { data: planDistData } = await supabase.from('users').select('plan').neq('role', 'admin')
 
   const planDist: Record<string, number> = { free: 0, prata: 0, ouro: 0, diamante: 0 }
   for (const u of planDistData ?? []) {
@@ -171,7 +163,7 @@ export default async function AdminPage() {
   // Últimas 5 assinaturas
   const { data: recentSubsData } = await supabase
     .from('subscriptions')
-    .select('id, plan, status, period_start, users(name, email)')
+    .select('id, plan_tier, status, period_start, users(name, email)')
     .order('period_start', { ascending: false })
     .limit(5)
 
@@ -184,7 +176,9 @@ export default async function AdminPage() {
         .chart .bar{ flex:1; background:linear-gradient(180deg,var(--blue),#7bbcff); border-radius:6px 6px 0 0; min-height:6px; transition:opacity .15s; }
         .chart .bar:hover{ opacity:.8; }
         .chart .bar.peak{ background:linear-gradient(180deg,var(--blue-600,#2a88e8),var(--blue)); }
-        @media (max-width:900px){ .g4{ grid-template-columns:1fr 1fr; } }
+        .admin-2col{ display:grid; grid-template-columns:1.5fr 1fr; gap:24px; margin-top:24px; }
+        @media (max-width:900px){ .g4{ grid-template-columns:1fr 1fr; } .admin-2col{ grid-template-columns:1fr; } }
+        @media (max-width:600px){ .g4{ grid-template-columns:1fr; } }
       `}</style>
 
       <div className="topbar">
@@ -193,9 +187,13 @@ export default async function AdminPage() {
         </div>
         <div className="flex aic gap16">
           <span className="muted" style={{ fontSize: '13px' }}>
-            {new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date())}
+            {new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(
+              new Date()
+            )}
           </span>
-          <div className="avatar sm" style={{ background: 'var(--ink)' }}>FB</div>
+          <div className="avatar sm" style={{ background: 'var(--ink)' }}>
+            FB
+          </div>
         </div>
       </div>
 
@@ -229,10 +227,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Grid 2 colunas: gráfico + alunos por plano */}
-        <div
-          className="grid"
-          style={{ gridTemplateColumns: '1.5fr 1fr', marginTop: '24px', gap: '24px' }}
-        >
+        <div className="admin-2col">
           <div className="card card-pad">
             <div className="flex between aic">
               <div>
@@ -273,10 +268,7 @@ export default async function AdminPage() {
             <div className="col gap16" style={{ marginTop: '18px' }}>
               {(['free', 'prata', 'ouro', 'diamante'] as const).map((plan) => (
                 <div key={plan}>
-                  <div
-                    className="flex between"
-                    style={{ fontSize: '13.5px', marginBottom: '6px' }}
-                  >
+                  <div className="flex between" style={{ fontSize: '13.5px', marginBottom: '6px' }}>
                     <span>{PLAN_LABELS[plan]}</span>
                     <b>{planDist[plan]}</b>
                   </div>
@@ -296,10 +288,7 @@ export default async function AdminPage() {
 
         {/* Tabela últimas assinaturas */}
         <div className="card" style={{ marginTop: '24px' }}>
-          <div
-            className="flex between aic"
-            style={{ padding: '20px 22px 14px' }}
-          >
+          <div className="flex between aic" style={{ padding: '20px 22px 14px' }}>
             <h3 style={{ fontSize: '17px' }}>Últimos pagamentos</h3>
             <Link
               href="/admin/relatorios"
@@ -309,61 +298,63 @@ export default async function AdminPage() {
               Ver relatórios →
             </Link>
           </div>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>Aluno</th>
-                <th>Plano / Curso</th>
-                <th>Valor</th>
-                <th>Data</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentSubs.length === 0 && (
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead>
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="muted"
-                    style={{ textAlign: 'center', padding: '20px' }}
-                  >
-                    Nenhuma assinatura encontrada
-                  </td>
+                  <th>Aluno</th>
+                  <th>Plano / Curso</th>
+                  <th>Valor</th>
+                  <th>Data</th>
+                  <th>Status</th>
                 </tr>
-              )}
-              {recentSubs.map((sub) => {
-                const name = sub.users?.name ?? 'Aluno'
-                const plan = (sub.plan ?? 'free').toLowerCase()
-                const price = planPrices[plan] ?? 0
-                const isActive = sub.status === 'active'
-                return (
-                  <tr key={sub.id}>
-                    <td>
-                      <div className="flex aic gap12">
-                        <div className="avatar sm">{initials(name)}</div>
-                        {name}
-                      </div>
-                    </td>
-                    <td>Plano {PLAN_LABELS[plan] ?? sub.plan}</td>
-                    <td>{formatCurrency(price)}</td>
-                    <td>{formatDateTime(sub.period_start)}</td>
-                    <td>
-                      {isActive ? (
-                        <span className="badge green dot">Aprovado</span>
-                      ) : (
-                        <span
-                          className="badge"
-                          style={{ background: '#fdeede', color: '#b5790f' }}
-                        >
-                          {sub.status}
-                        </span>
-                      )}
+              </thead>
+              <tbody>
+                {recentSubs.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="muted"
+                      style={{ textAlign: 'center', padding: '20px' }}
+                    >
+                      Nenhuma assinatura encontrada
                     </td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                )}
+                {recentSubs.map((sub) => {
+                  const name = sub.users?.name ?? 'Aluno'
+                  const plan = (sub.plan_tier ?? 'free').toLowerCase()
+                  const price = planPrices[plan] ?? 0
+                  const isActive = sub.status === 'active'
+                  return (
+                    <tr key={sub.id}>
+                      <td>
+                        <div className="flex aic gap12">
+                          <div className="avatar sm">{initials(name)}</div>
+                          {name}
+                        </div>
+                      </td>
+                      <td>Plano {PLAN_LABELS[plan] ?? sub.plan_tier}</td>
+                      <td>{formatCurrency(price)}</td>
+                      <td>{formatDateTime(sub.period_start)}</td>
+                      <td>
+                        {isActive ? (
+                          <span className="badge green dot">Aprovado</span>
+                        ) : (
+                          <span
+                            className="badge"
+                            style={{ background: '#fdeede', color: '#b5790f' }}
+                          >
+                            {sub.status}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </>

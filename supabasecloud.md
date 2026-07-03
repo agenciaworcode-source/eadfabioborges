@@ -1,9 +1,0 @@
-https://auxsvbkxrpsbfwehccto.supabase.co
-
-supabase login
-supabase init
-supabase link --project-ref auxsvbkxrpsbfwehccto
-
-sb_publishable_a83rpAxyZAThrBfRqKvm6g_2QEfp7MW
-
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1eHN2Ymt4cnBzYmZ3ZWhjY3RvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTUyOTcyNiwiZXhwIjoyMDk3MTA1NzI2fQ.mhZp0xUsHSsbbAQUvZsQQhjYMwOZIyCsHQ9vTP9L04Q

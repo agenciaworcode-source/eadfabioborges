@@ -19,7 +19,9 @@ interface LessonProgressRaw {
 export async function GET(request: Request) {
   const supabase = createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const { data: profileData } = await supabase
@@ -40,9 +42,25 @@ export async function GET(request: Request) {
   const page = parseInt(url.searchParams.get('page') ?? '0', 10)
   const pageSize = 20
 
+  // Busca por nome/email: primeiro resolve user_ids correspondentes
+  let searchUserIds: string[] | null = null
+  if (search && search.trim().length >= 1) {
+    const { data: usersFound } = await supabase
+      .from('users')
+      .select('id')
+      .or(`name.ilike.%${search.trim()}%,email.ilike.%${search.trim()}%`)
+      .limit(200)
+    searchUserIds = (usersFound ?? []).map((u: { id: string }) => u.id)
+    if (searchUserIds.length === 0) {
+      return NextResponse.json({ enrollments: [], total: 0, page, pageSize })
+    }
+  }
+
   let query = supabase
     .from('enrollments')
-    .select('id, user_id, course_id, status, enrolled_at, users(name, email), courses(title)', { count: 'exact' })
+    .select('id, user_id, course_id, status, enrolled_at, users(name, email), courses(title)', {
+      count: 'exact',
+    })
     .order('enrolled_at', { ascending: false })
 
   if (courseId) {
@@ -62,6 +80,10 @@ export async function GET(request: Request) {
     }
   }
 
+  if (searchUserIds !== null) {
+    query = query.in('user_id', searchUserIds)
+  }
+
   query = query.range(page * pageSize, (page + 1) * pageSize - 1)
 
   const { data, count, error } = await query
@@ -71,17 +93,7 @@ export async function GET(request: Request) {
   }
 
   const enrollments = (data ?? []) as unknown as EnrollmentRaw[]
-
-  // Filtro por busca (nome/email) — client side após query
-  let filtered = enrollments
-  if (search) {
-    const q = search.toLowerCase()
-    filtered = enrollments.filter(
-      (e) =>
-        (e.users?.name ?? '').toLowerCase().includes(q) ||
-        (e.users?.email ?? '').toLowerCase().includes(q)
-    )
-  }
+  const filtered = enrollments
 
   // Buscar total de aulas por curso (para calcular progresso)
   const courseIds = Array.from(new Set(filtered.map((e) => e.course_id)))
@@ -92,7 +104,9 @@ export async function GET(request: Request) {
       .from('lessons')
       .select('id, modules!inner(course_id)')
       .eq('modules.course_id' as never, cId)
-    lessonsByCourse[cId] = ((lessonsData ?? []) as unknown as Array<{ id: string }>).map((l) => l.id)
+    lessonsByCourse[cId] = ((lessonsData ?? []) as unknown as Array<{ id: string }>).map(
+      (l) => l.id
+    )
   }
 
   // Buscar progresso de todos os usuários de uma vez por curso
