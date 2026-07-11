@@ -111,6 +111,48 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          id: string
+          user_id: string | null
+          kind: 'course' | 'cart' | 'plan'
+          item_ref: string | null
+          amount_cents: number
+          method: 'credit_card' | 'pix' | 'boleto' | null
+          provider: string
+          provider_order_id: string
+          status: 'paid' | 'refunded' | 'chargeback'
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          kind: 'course' | 'cart' | 'plan'
+          item_ref?: string | null
+          amount_cents?: number
+          method?: 'credit_card' | 'pix' | 'boleto' | null
+          provider?: string
+          provider_order_id: string
+          status?: 'paid' | 'refunded' | 'chargeback'
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          kind?: 'course' | 'cart' | 'plan'
+          item_ref?: string | null
+          amount_cents?: number
+          method?: 'credit_card' | 'pix' | 'boleto' | null
+          provider?: string
+          provider_order_id?: string
+          status?: 'paid' | 'refunded' | 'chargeback'
+          metadata?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
       coupon_uses: {
         Row: {
           id: string

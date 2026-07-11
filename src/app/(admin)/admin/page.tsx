@@ -93,15 +93,15 @@ export default async function AdminPage() {
       ? Math.round(((completedEnrollments ?? 0) / totalEnrollments) * 100)
       : 0
 
-  // Stats: receita do mês
-  const { data: monthlySubsData } = await supabase
-    .from('subscriptions')
-    .select('plan_tier')
-    .eq('status', 'active')
-    .gte('period_start', startOfMonth.toISOString())
+  // Stats: receita do mês — soma dos pagamentos confirmados (curso + plano, valor real pago)
+  const { data: monthlyPaymentsData } = await supabase
+    .from('payments')
+    .select('amount_cents')
+    .eq('status', 'paid')
+    .gte('created_at', startOfMonth.toISOString())
 
-  const monthlyRevenue = (monthlySubsData ?? []).reduce(
-    (sum, s) => sum + (planPrices[(s.plan_tier ?? '').toLowerCase()] ?? 0),
+  const monthlyRevenue = (monthlyPaymentsData ?? []).reduce(
+    (sum, p) => sum + (p as { amount_cents: number }).amount_cents / 100,
     0
   )
 

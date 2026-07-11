@@ -93,6 +93,8 @@ interface PagarmeOrder {
   id: string
   code: string
   status: string
+  amount?: number // valor total do pedido em centavos (fonte do faturamento)
+  charges?: Array<{ payment_method?: string }>
   metadata: Record<string, string> | null
 }
 
@@ -164,7 +166,55 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 
+  // Ledger de pagamentos — fonte única do faturamento (idempotente por order id).
+  // Não deve derrubar o webhook se falhar: a matrícula já foi concedida acima.
+  if (type === 'course' || type === 'cart' || type === 'plan') {
+    await recordPayment(order, type).catch((err) => {
+      console.error(
+        `[pagarme-webhook] Falha ao registrar pagamento orderId=${order.id}: ${err instanceof Error ? err.message : String(err)}`
+      )
+    })
+  }
+
   return NextResponse.json({ received: true, handled: true })
+}
+
+// ─── Ledger de pagamentos ─────────────────────────────────────────────────────
+
+async function recordPayment(order: PagarmeOrder, kind: 'course' | 'cart' | 'plan'): Promise<void> {
+  const meta = order.metadata ?? {}
+  const method = order.charges?.[0]?.payment_method
+  const itemRef =
+    kind === 'plan'
+      ? (meta.planId ?? null)
+      : kind === 'course'
+        ? (meta.courseId ?? null)
+        : (meta.courseIds ?? null)
+
+  if (!order.amount || order.amount <= 0) {
+    console.warn(`[pagarme-webhook] order.amount ausente/zero no ledger orderId=${order.id}`)
+  }
+
+  const supabase = createServiceClient()
+  const { error } = await supabase.from('payments').upsert(
+    {
+      user_id: meta.userId ?? null,
+      kind,
+      item_ref: itemRef,
+      amount_cents: order.amount ?? 0,
+      method: method ?? null,
+      provider: 'pagarme',
+      provider_order_id: order.id,
+      status: 'paid',
+      metadata: meta,
+    } as never,
+    { onConflict: 'provider,provider_order_id', ignoreDuplicates: true }
+  )
+
+  if (error) throw new Error(error.message)
+  console.log(
+    `[pagarme-webhook] 💰 Pagamento registrado: orderId=${order.id} kind=${kind} valor=${order.amount ?? 0}`
+  )
 }
 
 function parseCourseIds(raw: string | undefined): string[] {

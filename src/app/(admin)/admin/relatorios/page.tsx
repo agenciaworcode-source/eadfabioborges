@@ -3,8 +3,7 @@ import { RelatoriosPeriodSelector } from '@/components/admin/RelatoriosPeriodSel
 import { PLAN_LABELS, PLAN_COLORS } from '@/config/plans'
 
 function formatCurrency(v: number) {
-  if (v >= 1_000_000)
-    return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')}M`
+  if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')}M`
   if (v >= 1_000) return `R$ ${(v / 1_000).toFixed(0)}k`
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -12,10 +11,7 @@ function formatCurrency(v: number) {
   }).format(v)
 }
 
-function buildConicGradient(
-  distribution: Record<string, number>,
-  total: number
-): string {
+function buildConicGradient(distribution: Record<string, number>, total: number): string {
   if (total === 0) return '#eef0f3'
   let acc = 0
   const segments: string[] = []
@@ -24,9 +20,7 @@ function buildConicGradient(
     const pct = (count / total) * 100
     if (pct === 0) continue
     const color = PLAN_COLORS[plan]
-    segments.push(
-      `${color} ${acc.toFixed(1)}% ${(acc + pct).toFixed(1)}%`
-    )
+    segments.push(`${color} ${acc.toFixed(1)}% ${(acc + pct).toFixed(1)}%`)
     acc += pct
   }
   return `conic-gradient(${segments.join(', ')})`
@@ -39,16 +33,6 @@ export default async function AdminRelatoriosPage({
 }) {
   const supabase = createClient()
 
-  // Preços dos planos (fonte única: tabela plans)
-  const { data: plansData } = await supabase
-    .from('plans')
-    .select('id, price_monthly')
-  const planPrices = Object.fromEntries(
-    ((plansData ?? []) as Array<{ id: string; price_monthly: number }>).map((p) => [
-      p.id,
-      p.price_monthly / 100,
-    ])
-  )
   const period = searchParams?.period ?? '12m'
 
   const monthsBack = period === '6m' ? 6 : period === 'year' ? 12 : 12
@@ -69,29 +53,28 @@ export default async function AdminRelatoriosPage({
     period_start: string
   }>
 
-  // Receita total estimada
-  const totalRevenue = subs.reduce(
-    (sum, s) => sum + (planPrices[(s.plan ?? '').toLowerCase()] ?? 0),
-    0
-  )
+  // Pagamentos confirmados no período — fonte única do faturamento (curso + plano)
+  const { data: paymentsData } = await supabase
+    .from('payments')
+    .select('amount_cents, created_at')
+    .eq('status', 'paid')
+    .gte('created_at', startDate.toISOString())
+  const payments = (paymentsData ?? []) as Array<{ amount_cents: number; created_at: string }>
 
-  // Ticket médio
+  // Receita total (valor REAL pago, curso avulso + planos)
+  const totalRevenue = payments.reduce((sum, p) => sum + p.amount_cents / 100, 0)
+
+  // Ticket médio por pagamento
   const activeSubs = subs.filter((s) => s.status === 'active')
-  const ticketMedio =
-    activeSubs.length > 0 ? totalRevenue / subs.length : 0
+  const ticketMedio = payments.length > 0 ? totalRevenue / payments.length : 0
 
   // Churn: cancelados no último mês
   const lastMonth = new Date()
   lastMonth.setMonth(lastMonth.getMonth() - 1)
   const canceledThisMonth = subs.filter(
-    (s) =>
-      s.status === 'canceled' &&
-      new Date(s.period_start) >= lastMonth
+    (s) => s.status === 'canceled' && new Date(s.period_start) >= lastMonth
   ).length
-  const churnRate =
-    subs.length > 0
-      ? ((canceledThisMonth / subs.length) * 100).toFixed(1)
-      : '0.0'
+  const churnRate = subs.length > 0 ? ((canceledThisMonth / subs.length) * 100).toFixed(1) : '0.0'
 
   // Receita por mês (últimos 12 meses)
   const monthlyRevenue: Record<string, number> = {}
@@ -101,11 +84,10 @@ export default async function AdminRelatoriosPage({
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     monthlyRevenue[key] = 0
   }
-  for (const s of subs) {
-    const key = s.period_start.slice(0, 7)
+  for (const p of payments) {
+    const key = p.created_at.slice(0, 7)
     if (key in monthlyRevenue) {
-      monthlyRevenue[key] +=
-        planPrices[(s.plan ?? '').toLowerCase()] ?? 0
+      monthlyRevenue[key] += p.amount_cents / 100
     }
   }
 
@@ -124,10 +106,7 @@ export default async function AdminRelatoriosPage({
   })
 
   // Distribuição por plano (all-time users)
-  const { data: usersData } = await supabase
-    .from('users')
-    .select('plan')
-    .neq('role', 'admin')
+  const { data: usersData } = await supabase.from('users').select('plan').neq('role', 'admin')
 
   const planDist: Record<string, number> = {
     free: 0,
@@ -215,7 +194,9 @@ export default async function AdminRelatoriosPage({
         <div className="crumb">
           <a href="/admin">Admin</a> <span>›</span> <b>Relatórios</b>
         </div>
-        <div className="avatar sm" style={{ background: 'var(--ink)' }}>FB</div>
+        <div className="avatar sm" style={{ background: 'var(--ink)' }}>
+          FB
+        </div>
       </div>
 
       <div className="content wide">
@@ -250,9 +231,7 @@ export default async function AdminRelatoriosPage({
 
         {/* Gráfico receita por mês */}
         <div className="card card-pad" style={{ marginTop: '24px' }}>
-          <h3 style={{ fontSize: '17px', marginBottom: '6px' }}>
-            Receita estimada por mês
-          </h3>
+          <h3 style={{ fontSize: '17px', marginBottom: '6px' }}>Receita estimada por mês</h3>
           <div className="chart">
             {revenueBarHeights.map((h, i) => (
               <div
@@ -261,9 +240,7 @@ export default async function AdminRelatoriosPage({
                 style={{ height: `${h}%` }}
                 title={`${monthLabels[i]}: ${formatCurrency(monthlyValues[i])}`}
               >
-                {monthlyValues[i] > 0 && (
-                  <span>{formatCurrency(monthlyValues[i])}</span>
-                )}
+                {monthlyValues[i] > 0 && <span>{formatCurrency(monthlyValues[i])}</span>}
               </div>
             ))}
           </div>
@@ -287,9 +264,7 @@ export default async function AdminRelatoriosPage({
         >
           {/* Ranking de cursos */}
           <div className="card card-pad">
-            <h3 style={{ fontSize: '17px', marginBottom: '18px' }}>
-              Aulas concluídas por curso
-            </h3>
+            <h3 style={{ fontSize: '17px', marginBottom: '18px' }}>Aulas concluídas por curso</h3>
             {rankingCourses.length === 0 && (
               <p className="muted" style={{ fontSize: '13px' }}>
                 Sem dados de progresso ainda.
@@ -314,14 +289,9 @@ export default async function AdminRelatoriosPage({
 
           {/* Donut planos */}
           <div className="card card-pad">
-            <h3 style={{ fontSize: '17px', marginBottom: '18px' }}>
-              Alunos por plano
-            </h3>
+            <h3 style={{ fontSize: '17px', marginBottom: '18px' }}>Alunos por plano</h3>
             <div className="flex" style={{ gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <div
-                className="donut"
-                style={{ background: donutGradient }}
-              >
+              <div className="donut" style={{ background: donutGradient }}>
                 <div className="hole">
                   <div>
                     <div style={{ fontSize: '22px', fontWeight: 600 }}>
@@ -336,15 +306,9 @@ export default async function AdminRelatoriosPage({
               <div style={{ flex: 1 }}>
                 {(['free', 'prata', 'ouro', 'diamante'] as const).map((plan) => (
                   <div key={plan} className="leg">
-                    <div
-                      className="sw"
-                      style={{ background: PLAN_COLORS[plan] }}
-                    />
+                    <div className="sw" style={{ background: PLAN_COLORS[plan] }} />
                     <span>{PLAN_LABELS[plan]}</span>
-                    <span
-                      className="muted"
-                      style={{ marginLeft: 'auto', fontWeight: 600 }}
-                    >
+                    <span className="muted" style={{ marginLeft: 'auto', fontWeight: 600 }}>
                       {totalUsers > 0 ? Math.round(((planDist[plan] ?? 0) / totalUsers) * 100) : 0}%
                     </span>
                   </div>

@@ -118,4 +118,54 @@ describe('POST /api/webhooks/pagarme — autenticação Basic Auth (regressão S
 
     expect(res.status).toBe(200)
   })
+
+  it('registra pagamento no ledger (idempotente, valor real) ao processar order.paid', async () => {
+    vi.stubEnv('PAGARME_WEBHOOK_USER', USER)
+    vi.stubEnv('PAGARME_WEBHOOK_PASSWORD', PASS)
+
+    const upsertSpy = vi.fn().mockResolvedValue({ error: null })
+    mockServiceFrom.mockImplementation((table: string) => {
+      if (table === 'payments') return { upsert: upsertSpy }
+      // Cadeia genérica p/ enrollments/users (idempotência e e-mail)
+      const chain: Record<string, unknown> = {}
+      Object.assign(chain, {
+        select: () => chain,
+        eq: () => chain,
+        in: () => chain,
+        update: () => chain,
+        maybeSingle: async () => ({ data: null }),
+        single: async () => ({ data: { name: 'QA', email: 'qa@x.com' } }),
+      })
+      return chain
+    })
+
+    const body = JSON.stringify({
+      id: 'evt-1',
+      type: 'order.paid',
+      data: {
+        id: 'or_ledger_1',
+        code: 'X',
+        status: 'paid',
+        amount: 99700,
+        charges: [{ payment_method: 'credit_card' }],
+        metadata: { type: 'course', userId: 'u1', courseId: 'c1' },
+      },
+    })
+    const res = await POST(makeRequest(body, basic(USER, PASS)))
+
+    expect(res.status).toBe(200)
+    expect(upsertSpy).toHaveBeenCalledTimes(1)
+    const [row, opts] = upsertSpy.mock.calls[0] as [
+      Record<string, unknown>,
+      Record<string, unknown>,
+    ]
+    expect(row).toMatchObject({
+      provider_order_id: 'or_ledger_1',
+      amount_cents: 99700,
+      kind: 'course',
+      method: 'credit_card',
+      status: 'paid',
+    })
+    expect(opts).toMatchObject({ onConflict: 'provider,provider_order_id', ignoreDuplicates: true })
+  })
 })
