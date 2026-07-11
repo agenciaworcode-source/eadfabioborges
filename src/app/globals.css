@@ -5,51 +5,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
 
-/* ── shadcn/ui theme tokens (brand-themed: azul da Mentoria como primary) ── */
-:root{
-  --background: 0 0% 100%;
-  --foreground: 240 6% 12%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 6% 12%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 6% 12%;
-  --primary: 211 86% 55%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 240 5% 96%;
-  --secondary-foreground: 240 6% 12%;
-  --muted: 240 5% 96%;
-  --muted-foreground: 240 4% 44%;
-  --accent: 211 90% 96%;
-  --accent-foreground: 211 86% 40%;
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 240 6% 90%;
-  --input: 240 6% 90%;
-  --ring: 211 86% 55%;
-  --radius: 0.75rem;
-}
-.dark{
-  --background: 240 6% 10%;
-  --foreground: 0 0% 98%;
-  --card: 240 6% 12%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 6% 12%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 211 86% 60%;
-  --primary-foreground: 240 6% 10%;
-  --secondary: 240 4% 18%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 4% 18%;
-  --muted-foreground: 240 5% 65%;
-  --accent: 240 4% 20%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62% 45%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 4% 20%;
-  --input: 240 4% 20%;
-  --ring: 211 86% 60%;
-}
-
 :root{
   /* palette */
   --bg:        #f2f2f2;

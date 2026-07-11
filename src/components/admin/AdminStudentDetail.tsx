@@ -3,9 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, GraduationCap, Loader2, Plus, Trash2 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 
 interface Enrollment {
   id: string
@@ -39,6 +36,13 @@ interface Profile {
 }
 
 const PLANS = ['free', 'prata', 'ouro', 'diamante', 'macroempresa']
+const PLAN_CLASS: Record<string, string> = {
+  free: 'plan-free',
+  prata: 'plan-prata',
+  ouro: 'plan-ouro',
+  diamante: 'plan-diamante',
+  macroempresa: 'plan-diamante',
+}
 
 function initials(name: string) {
   return name
@@ -56,9 +60,6 @@ function fmtDate(iso: string | null) {
     year: 'numeric',
   }).format(new Date(iso))
 }
-
-const selectCls =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring disabled:opacity-50'
 
 export function AdminStudentDetail({
   userId,
@@ -160,42 +161,63 @@ export function AdminStudentDetail({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center gap-2 p-10 text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />{' '}
-        <span className="text-sm">Carregando aluno…</span>
+      <div className="flex aic" style={{ gap: 10, padding: 40, justifyContent: 'center' }}>
+        <Loader2 className="spin" size={18} /> <span className="muted">Carregando aluno…</span>
       </div>
     )
   }
   if (error || !data) {
-    return <p className="p-6 text-sm text-muted-foreground">{error ?? 'Aluno não encontrado.'}</p>
+    return (
+      <p className="muted" style={{ padding: 24 }}>
+        {error ?? 'Aluno não encontrado.'}
+      </p>
+    )
   }
 
   const u = data.user
   const plan = (u.plan ?? 'free').toLowerCase()
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
+      <style>{`
+        .sd-head{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+        .sd-av{ width:56px; height:56px; border-radius:50%; background:var(--ink,#0f172a); color:#fff; display:grid; place-items:center; font-weight:700; font-size:19px; flex:none; }
+        .sd-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px; }
+        .sd-stat{ background:#f8fafc; border:1px solid var(--line,#e5e7eb); border-radius:10px; padding:14px 16px; }
+        .sd-stat b{ font-size:22px; display:block; letter-spacing:-.02em; }
+        .sd-stat span{ font-size:12px; color:var(--muted,#64748b); }
+        .sd-course{ border:1px solid var(--line,#e5e7eb); border-radius:12px; padding:16px; margin-bottom:12px; }
+        .sd-bar{ height:8px; background:#eef0f3; border-radius:999px; overflow:hidden; margin:8px 0 4px; }
+        .sd-bar span{ display:block; height:100%; background:linear-gradient(90deg,#4f46e5,#7bbcff); }
+        .sd-mod{ display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-top:1px dashed var(--line,#eef0f3); }
+        .sd-enroll{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+        .sd-select{ padding:9px 12px; border-radius:8px; border:1px solid var(--line-2,#d1d5db); font-size:14px; font-family:inherit; min-width:240px; }
+      `}</style>
+
       {/* Header + plano */}
-      <Card>
-        <CardContent className="flex flex-wrap items-center gap-4 pt-6">
-          <div className="flex size-14 flex-none items-center justify-center rounded-full bg-foreground text-lg font-bold text-background">
-            {initials(u.name)}
-          </div>
-          <div className="min-w-[200px] flex-1">
-            <h1 className="text-xl font-semibold tracking-tight">{u.name}</h1>
-            <p className="text-sm text-muted-foreground">{u.email}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+      <div className="card card-pad">
+        <div className="sd-head">
+          <div className="sd-av">{initials(u.name)}</div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <h1 style={{ fontSize: 22, marginBottom: 2 }}>{u.name}</h1>
+            <p className="muted" style={{ fontSize: 13 }}>
+              {u.email}
+            </p>
+            <p className="muted" style={{ fontSize: 12, marginTop: 2 }}>
               Membro desde {fmtDate(u.createdAt)} · Último acesso {fmtDate(u.lastSignIn)}
             </p>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs text-muted-foreground">Plano</span>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="uppercase">
-                {plan}
-              </Badge>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label className="muted" style={{ fontSize: 12 }}>
+              Plano
+            </label>
+            <div className="flex aic" style={{ gap: 8 }}>
+              <span className={`plan-badge ${PLAN_CLASS[plan] ?? 'plan-free'}`}>
+                {plan.toUpperCase()}
+              </span>
               <select
-                className={selectCls}
+                className="sd-select"
+                style={{ minWidth: 140 }}
                 value={plan}
                 disabled={busy}
                 onChange={(e) => void changePlan(e.target.value)}
@@ -208,35 +230,34 @@ export function AdminStudentDetail({
               </select>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { n: data.enrollments.length, l: 'Matrículas' },
-          { n: `${data.avgProgress}%`, l: 'Progresso médio' },
-          { n: data.certificates, l: 'Certificados' },
-        ].map((s) => (
-          <Card key={s.l}>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-semibold tracking-tight">{s.n}</div>
-              <div className="text-xs text-muted-foreground">{s.l}</div>
-            </CardContent>
-          </Card>
-        ))}
+        <div className="sd-stats">
+          <div className="sd-stat">
+            <b>{data.enrollments.length}</b>
+            <span>Matrículas</span>
+          </div>
+          <div className="sd-stat">
+            <b>{data.avgProgress}%</b>
+            <span>Progresso médio</span>
+          </div>
+          <div className="sd-stat">
+            <b>{data.certificates}</b>
+            <span>Certificados</span>
+          </div>
+        </div>
       </div>
 
       {/* Matricular em curso */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <GraduationCap className="size-5" /> Matricular em um curso
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center gap-3">
+      <div className="card card-pad" style={{ marginTop: 16 }}>
+        <h2
+          style={{ fontSize: 16, marginBottom: 10, display: 'flex', gap: 8, alignItems: 'center' }}
+        >
+          <GraduationCap size={18} /> Matricular em um curso
+        </h2>
+        <div className="sd-enroll">
           <select
-            className={`${selectCls} min-w-[260px]`}
+            className="sd-select"
             value={enrollCourse}
             disabled={busy || availableCourses.length === 0}
             onChange={(e) => setEnrollCourse(e.target.value)}
@@ -250,81 +271,80 @@ export function AdminStudentDetail({
               </option>
             ))}
           </select>
-          <Button size="sm" disabled={busy || !enrollCourse} onClick={() => void enroll()}>
-            <Plus className="size-4" /> Matricular
-          </Button>
-          {msg && <span className="text-sm text-muted-foreground">{msg}</span>}
-        </CardContent>
-      </Card>
+          <button
+            className="btn btn-primary btn-sm"
+            disabled={busy || !enrollCourse}
+            onClick={() => void enroll()}
+          >
+            <Plus size={16} /> Matricular
+          </button>
+        </div>
+        {msg && (
+          <p className="muted" style={{ fontSize: 13, marginTop: 10 }}>
+            {msg}
+          </p>
+        )}
+      </div>
 
       {/* Cursos + progresso */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Cursos matriculados & progresso</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {data.enrollments.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Este aluno ainda não está matriculado em nenhum curso.
-            </p>
-          )}
-          {data.enrollments.map((e) => {
-            const mods = data.moduleProgress[e.courseId] ?? []
-            const open = expanded === e.courseId
-            return (
-              <div key={e.id} className="rounded-xl border p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="min-w-[200px] flex-1">
-                    <strong className="text-sm font-semibold">{e.courseTitle}</strong>
-                    <div className="my-2 h-2 w-full overflow-hidden rounded-full bg-secondary">
-                      <div className="h-full bg-primary" style={{ width: `${e.progress}%` }} />
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {e.progress}% · {e.completedLessons}/{e.totalLessons} aulas · {e.status} ·
-                      desde {fmtDate(e.enrolledAt)}
+      <div className="card card-pad" style={{ marginTop: 16 }}>
+        <h2 style={{ fontSize: 16, marginBottom: 12 }}>Cursos matriculados & progresso</h2>
+        {data.enrollments.length === 0 && (
+          <p className="muted" style={{ fontSize: 14 }}>
+            Este aluno ainda não está matriculado em nenhum curso.
+          </p>
+        )}
+        {data.enrollments.map((e) => {
+          const mods = data.moduleProgress[e.courseId] ?? []
+          const open = expanded === e.courseId
+          return (
+            <div key={e.id} className="sd-course">
+              <div className="flex between aic" style={{ gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <strong style={{ fontSize: 15 }}>{e.courseTitle}</strong>
+                  <div className="sd-bar">
+                    <span style={{ width: `${e.progress}%` }} />
+                  </div>
+                  <span className="muted" style={{ fontSize: 12 }}>
+                    {e.progress}% · {e.completedLessons}/{e.totalLessons} aulas · {e.status} · desde{' '}
+                    {fmtDate(e.enrolledAt)}
+                  </span>
+                </div>
+                <div className="flex aic" style={{ gap: 8 }}>
+                  {mods.length > 0 && (
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setExpanded(open ? null : e.courseId)}
+                    >
+                      Módulos{' '}
+                      <ChevronDown
+                        size={14}
+                        style={{ transform: open ? 'rotate(180deg)' : 'none' }}
+                      />
+                    </button>
+                  )}
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    disabled={busy}
+                    onClick={() => void unenroll(e.id, e.courseTitle)}
+                  >
+                    <Trash2 size={14} /> Desmatricular
+                  </button>
+                </div>
+              </div>
+              {open &&
+                mods.map((m) => (
+                  <div key={m.order} className="sd-mod">
+                    <span>{m.title}</span>
+                    <span className="muted">
+                      {m.completed}/{m.total}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {mods.length > 0 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpanded(open ? null : e.courseId)}
-                      >
-                        Módulos
-                        <ChevronDown
-                          className="size-4"
-                          style={{ transform: open ? 'rotate(180deg)' : 'none' }}
-                        />
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={busy}
-                      onClick={() => void unenroll(e.id, e.courseTitle)}
-                    >
-                      <Trash2 className="size-4" /> Desmatricular
-                    </Button>
-                  </div>
-                </div>
-                {open &&
-                  mods.map((m) => (
-                    <div
-                      key={m.order}
-                      className="flex justify-between border-t border-dashed py-1.5 text-sm"
-                    >
-                      <span>{m.title}</span>
-                      <span className="text-muted-foreground">
-                        {m.completed}/{m.total}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            )
-          })}
-        </CardContent>
-      </Card>
-    </div>
+                ))}
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }
