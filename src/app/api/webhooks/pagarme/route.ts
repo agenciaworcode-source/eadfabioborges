@@ -12,14 +12,15 @@
  *   npx ngrok http 3000
  *   → copie a URL https gerada e registre no dashboard
  *
- * Verificação de assinatura:
- *   Header: X-Hub-Signature
- *   Algoritmo: HMAC-SHA256 com PAGARME_WEBHOOK_SECRET
- *   Se PAGARME_WEBHOOK_SECRET não estiver configurado, aceita qualquer requisição (apenas dev).
+ * Autenticação (PagarMe v5 — Basic Auth):
+ *   No dashboard, "Habilitar autenticação" define usuário/senha; a PagarMe
+ *   envia `Authorization: Basic base64(user:senha)`. Validado contra
+ *   PAGARME_WEBHOOK_USER / PAGARME_WEBHOOK_PASSWORD.
+ *   Sem credenciais em produção → rejeita (fail-closed). Fora de produção, aceita (dev).
  */
 
 import { NextResponse } from 'next/server'
-import { createHmac, timingSafeEqual } from 'crypto'
+import { timingSafeEqual } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createEnrollmentWithAccessWindow } from '@/lib/enrollments/access'
 import { sendEmail } from '@/lib/resend'
@@ -28,35 +29,62 @@ import { AssinaturaConfirmadaEmail } from '@/emails/AssinaturaConfirmadaEmail'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://ead.fabioborgesoficial.com.br'
 
-// ─── Verificação de assinatura ───────────────────────────────────────────────
+// ─── Autenticação (Basic Auth) ───────────────────────────────────────────────
+//
+// A PagarMe v5 NÃO envia assinatura HMAC. A segurança do webhook é feita via
+// HTTP Basic Auth: no dashboard, "Habilitar autenticação" define usuário/senha,
+// e a PagarMe passa a enviar `Authorization: Basic base64(user:senha)` em cada
+// requisição. Validamos essas credenciais contra as envs
+// PAGARME_WEBHOOK_USER / PAGARME_WEBHOOK_PASSWORD.
 
-function verifySignature(payload: string, signature: string): boolean {
-  const secret = process.env.PAGARME_WEBHOOK_SECRET
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, 'utf8')
+  const bufB = Buffer.from(b, 'utf8')
+  if (bufA.length !== bufB.length) return false
+  return timingSafeEqual(bufA, bufB)
+}
 
-  if (!secret) {
-    // Fail-closed em produção: sem secret configurado, NÃO aceitar (evita que
-    // um esquecimento de config vire porta aberta para forjar pagamentos).
+function isAuthorized(request: Request): boolean {
+  const user = process.env.PAGARME_WEBHOOK_USER
+  const pass = process.env.PAGARME_WEBHOOK_PASSWORD
+
+  if (!user || !pass) {
+    // Fail-closed em produção: sem credenciais, NÃO aceitar (evita que um
+    // esquecimento de config vire porta aberta para forjar pagamentos).
     // Fora de produção, aceita para facilitar testes locais.
     if (process.env.NODE_ENV === 'production') {
       console.error(
-        '[pagarme-webhook] PAGARME_WEBHOOK_SECRET ausente em produção — rejeitando requisição'
+        '[pagarme-webhook] PAGARME_WEBHOOK_USER/PASSWORD ausentes em produção — rejeitando requisição'
       )
       return false
     }
     console.warn(
-      '[pagarme-webhook] PAGARME_WEBHOOK_SECRET não configurado — aceitando sem verificação (apenas fora de produção)'
+      '[pagarme-webhook] credenciais de webhook não configuradas — aceitando sem verificação (apenas fora de produção)'
     )
     return true
   }
 
-  const expected = createHmac('sha256', secret).update(payload).digest('hex')
-  const received = signature.replace(/^sha256=/, '')
+  const header = request.headers.get('authorization') ?? ''
+  const [scheme, encoded] = header.split(' ')
+  if (scheme !== 'Basic' || !encoded) {
+    console.error(
+      `[pagarme-webhook] Authorization ausente/invalido (scheme='${scheme || 'vazio'}')`
+    )
+    return false
+  }
 
-  // Comparação em tempo constante para evitar timing attack
-  const expectedBuf = Buffer.from(expected, 'hex')
-  const receivedBuf = Buffer.from(received, 'hex')
-  if (expectedBuf.length !== receivedBuf.length) return false
-  return timingSafeEqual(expectedBuf, receivedBuf)
+  let decoded = ''
+  try {
+    decoded = Buffer.from(encoded, 'base64').toString('utf8')
+  } catch {
+    return false
+  }
+  const sep = decoded.indexOf(':')
+  if (sep < 0) return false
+  const gotUser = decoded.slice(0, sep)
+  const gotPass = decoded.slice(sep + 1)
+
+  return timingSafeEqualStr(gotUser, user) && timingSafeEqualStr(gotPass, pass)
 }
 
 // ─── Tipos do payload ─────────────────────────────────────────────────────────
@@ -78,13 +106,11 @@ interface PagarmeWebhookEvent {
 // ─── Handler ─────────────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
-  const rawBody = await request.text()
-  const signature = request.headers.get('x-hub-signature') ?? ''
-
-  if (!verifySignature(rawBody, signature)) {
-    console.error('[pagarme-webhook] Assinatura inválida')
-    return NextResponse.json({ error: 'Assinatura inválida' }, { status: 401 })
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }
+
+  const rawBody = await request.text()
 
   let event: PagarmeWebhookEvent
   try {

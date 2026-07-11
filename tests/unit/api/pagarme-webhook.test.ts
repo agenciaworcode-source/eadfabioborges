@@ -1,6 +1,5 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { createHmac } from 'crypto'
 
 // ─── Mocks de dependências (evitam efeitos colaterais de DB/e-mail) ───────────
 
@@ -39,24 +38,25 @@ import { POST } from '@/app/api/webhooks/pagarme/route'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeRequest(rawBody: string, signature?: string): Request {
+function makeRequest(rawBody: string, authHeader?: string): Request {
   return {
     text: async () => rawBody,
     headers: {
-      get: (name: string) => (name.toLowerCase() === 'x-hub-signature' ? (signature ?? '') : null),
+      get: (name: string) => (name.toLowerCase() === 'authorization' ? (authHeader ?? null) : null),
     },
   } as unknown as Request
 }
 
-function sign(payload: string, secret: string): string {
-  return createHmac('sha256', secret).update(payload).digest('hex')
+function basic(user: string, pass: string): string {
+  return 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64')
 }
 
-const SECRET = 'test-webhook-secret'
+const USER = 'pagarme-hook'
+const PASS = 'senha-super-secreta'
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('POST /api/webhooks/pagarme — verificação de assinatura (regressão S3)', () => {
+describe('POST /api/webhooks/pagarme — autenticação Basic Auth (regressão S3)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -65,17 +65,19 @@ describe('POST /api/webhooks/pagarme — verificação de assinatura (regressão
     vi.unstubAllEnvs()
   })
 
-  it('rejeita (401) quando secret está setado e a assinatura é inválida', async () => {
-    vi.stubEnv('PAGARME_WEBHOOK_SECRET', SECRET)
+  it('rejeita (401) quando credenciais estão setadas e a senha é inválida', async () => {
+    vi.stubEnv('PAGARME_WEBHOOK_USER', USER)
+    vi.stubEnv('PAGARME_WEBHOOK_PASSWORD', PASS)
 
     const body = JSON.stringify({ type: 'order.paid', data: { id: 'or_1', metadata: {} } })
-    const res = await POST(makeRequest(body, 'assinatura-errada'))
+    const res = await POST(makeRequest(body, basic(USER, 'senha-errada')))
 
     expect(res.status).toBe(401)
   })
 
-  it('rejeita (401) quando secret está setado e não há header de assinatura', async () => {
-    vi.stubEnv('PAGARME_WEBHOOK_SECRET', SECRET)
+  it('rejeita (401) quando credenciais estão setadas e não há header Authorization', async () => {
+    vi.stubEnv('PAGARME_WEBHOOK_USER', USER)
+    vi.stubEnv('PAGARME_WEBHOOK_PASSWORD', PASS)
 
     const body = JSON.stringify({ type: 'order.paid', data: { id: 'or_1', metadata: {} } })
     const res = await POST(makeRequest(body))
@@ -83,33 +85,36 @@ describe('POST /api/webhooks/pagarme — verificação de assinatura (regressão
     expect(res.status).toBe(401)
   })
 
-  it('FAIL-CLOSED: rejeita (401) em produção quando o secret não está configurado', async () => {
-    vi.stubEnv('PAGARME_WEBHOOK_SECRET', '')
+  it('FAIL-CLOSED: rejeita (401) em produção quando as credenciais não estão configuradas', async () => {
+    vi.stubEnv('PAGARME_WEBHOOK_USER', '')
+    vi.stubEnv('PAGARME_WEBHOOK_PASSWORD', '')
     vi.stubEnv('NODE_ENV', 'production')
 
     const body = JSON.stringify({ type: 'order.paid', data: { id: 'or_1', metadata: {} } })
-    const res = await POST(makeRequest(body, 'qualquer-coisa'))
+    const res = await POST(makeRequest(body, basic(USER, PASS)))
 
     expect(res.status).toBe(401)
   })
 
-  it('aceita assinatura válida e ignora evento não-order.paid (handled: false)', async () => {
-    vi.stubEnv('PAGARME_WEBHOOK_SECRET', SECRET)
+  it('aceita Basic Auth válido e ignora evento não-order.paid (handled: false)', async () => {
+    vi.stubEnv('PAGARME_WEBHOOK_USER', USER)
+    vi.stubEnv('PAGARME_WEBHOOK_PASSWORD', PASS)
 
     const body = JSON.stringify({ type: 'charge.updated', data: { id: 'or_1', metadata: {} } })
-    const res = await POST(makeRequest(body, sign(body, SECRET)))
+    const res = await POST(makeRequest(body, basic(USER, PASS)))
 
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data).toMatchObject({ received: true, handled: false })
   })
 
-  it('fora de produção, aceita sem secret (conveniência de dev)', async () => {
-    vi.stubEnv('PAGARME_WEBHOOK_SECRET', '')
+  it('fora de produção, aceita sem credenciais (conveniência de dev)', async () => {
+    vi.stubEnv('PAGARME_WEBHOOK_USER', '')
+    vi.stubEnv('PAGARME_WEBHOOK_PASSWORD', '')
     vi.stubEnv('NODE_ENV', 'test')
 
     const body = JSON.stringify({ type: 'charge.updated', data: { id: 'or_1', metadata: {} } })
-    const res = await POST(makeRequest(body, ''))
+    const res = await POST(makeRequest(body))
 
     expect(res.status).toBe(200)
   })
