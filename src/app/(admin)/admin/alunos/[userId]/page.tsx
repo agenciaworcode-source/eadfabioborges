@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { ChevronLeft, Eye } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { StudentProgressSection } from '@/components/admin/StudentProgressSection'
+import { AdminStudentDetail } from '@/components/admin/AdminStudentDetail'
 
 interface AdminStudentPageProps {
   params: {
@@ -14,7 +14,7 @@ export default async function AdminAlunoDetailPage({ params }: AdminStudentPageP
 
   const { data: userData } = await supabase
     .from('users')
-    .select('id, name, email, plan, created_at')
+    .select('id, name')
     .eq('id', params.userId)
     .maybeSingle()
 
@@ -33,43 +33,32 @@ export default async function AdminAlunoDetailPage({ params }: AdminStudentPageP
     )
   }
 
+  const { data: coursesData } = await supabase
+    .from('courses')
+    .select('id, title')
+    .eq('published', true)
+    .order('title')
+
+  const courseOptions = ((coursesData ?? []) as Array<{ id: string; title: string }>).map((c) => ({
+    id: c.id,
+    title: c.title,
+  }))
+
   return (
     <div className="content wide">
-      <div className="flex between aic" style={{ gap: '16px', flexWrap: 'wrap' }}>
-        <div>
-          <div className="crumb" style={{ marginBottom: '8px' }}>
-            <Link href="/admin/alunos">Admin</Link>
-            <span>›</span>
-            <b>Aluno</b>
-          </div>
-          <h1 style={{ fontSize: '26px' }}>{userData.name}</h1>
-          <p className="muted" style={{ marginTop: '4px' }}>
-            {userData.email} · plano {(userData.plan ?? 'free').toUpperCase()}
-          </p>
+      <div className="flex between aic" style={{ gap: '16px', flexWrap: 'wrap', marginBottom: 16 }}>
+        <div className="crumb">
+          <Link href="/admin/alunos">Alunos</Link>
+          <span>›</span>
+          <b>Detalhe</b>
         </div>
-
         <Link className="btn btn-ghost btn-sm" href="/admin/alunos">
           <ChevronLeft size={16} />
           Voltar
         </Link>
       </div>
 
-      <div className="card card-pad" style={{ marginTop: '18px' }}>
-        <div className="flex between aic" style={{ gap: '12px', flexWrap: 'wrap' }}>
-          <div>
-            <h2 style={{ fontSize: '18px', marginBottom: '4px' }}>Perfil do aluno</h2>
-            <p className="muted" style={{ fontSize: '13px' }}>
-              Dados de matrícula, acesso e progresso em um único lugar.
-            </p>
-          </div>
-          <Link className="btn btn-ghost btn-sm" href={`/admin/alunos?highlight=${params.userId}`}>
-            <Eye size={16} />
-            Ver na lista
-          </Link>
-        </div>
-
-        <StudentProgressSection userId={params.userId} />
-      </div>
+      <AdminStudentDetail userId={params.userId} courseOptions={courseOptions} />
     </div>
   )
 }

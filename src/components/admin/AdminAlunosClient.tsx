@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useState, useMemo } from 'react'
-import { AdminAlunoModal, type ModalUser } from './AdminAlunoModal'
 
 export interface AlunoRow {
   id: string
@@ -51,7 +50,6 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
   const [enrollFilter, setEnrollFilter] = useState<'all' | 'enrolled' | 'no-enroll'>('all')
   const [sortBy, setSortBy] = useState<'recent' | 'name' | 'enrollments'>('recent')
   const [page, setPage] = useState(0)
-  const [selectedUser, setSelectedUser] = useState<ModalUser | null>(null)
 
   // Matrícula manual
   const [enrollEmail, setEnrollEmail] = useState('')
@@ -159,11 +157,6 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
     } finally {
       setEnrolling(false)
     }
-  }
-
-  function handlePlanChanged(userId: string, newPlan: string) {
-    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, plan: newPlan } : u)))
-    setSelectedUser((prev) => (prev && prev.id === userId ? { ...prev, plan: newPlan } : prev))
   }
 
   return (
@@ -455,43 +448,9 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
                         }).format(new Date(u.created_at))}
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button
-                            className="iconbtn"
-                            onClick={() => setSelectedUser(u)}
-                            title="Abrir modal"
-                          >
-                            <svg
-                              width="15"
-                              height="15"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-                              <circle cx="12" cy="12" r="3" />
-                            </svg>
-                          </button>
-                          <Link
-                            className="iconbtn"
-                            href={`/admin/alunos/${u.id}`}
-                            title="Abrir página do aluno"
-                          >
-                            <svg
-                              width="15"
-                              height="15"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M14 3h7v7" />
-                              <path d="M10 14 21 3" />
-                              <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
-                            </svg>
-                          </Link>
-                        </div>
+                        <Link className="btn btn-ghost btn-sm" href={`/admin/alunos/${u.id}`}>
+                          Ver aluno
+                        </Link>
                       </td>
                     </tr>
                   )
@@ -526,13 +485,6 @@ export function AdminAlunosClient({ users: initialUsers, courseOptions }: AdminA
           </div>
         )}
       </div>
-
-      <AdminAlunoModal
-        user={selectedUser}
-        courseOptions={courseOptions}
-        onClose={() => setSelectedUser(null)}
-        onPlanChanged={handlePlanChanged}
-      />
     </>
   )
 }
