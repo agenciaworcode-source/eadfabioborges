@@ -175,44 +175,6 @@ export type TransparentPaymentInput =
   | { method: 'pix' }
   | { method: 'boleto'; customerDocument: string }
 
-interface PagarmeTokenResponse {
-  id: string
-  errors?: Array<{ message: string }>
-}
-
-async function tokenizePagarmeCard(card: {
-  number: string
-  holder_name: string
-  exp_month: number
-  exp_year: number
-  cvv: string
-  billing_address?: {
-    line_1: string
-    zip_code: string
-    city: string
-    state: string
-    country: string
-  }
-}): Promise<string> {
-  const publicKey = process.env.PAGARME_PUBLIC_KEY ?? process.env.NEXT_PUBLIC_PAGARME_PUBLIC_KEY
-  if (!publicKey) throw new Error('[pagarme] PAGARME_PUBLIC_KEY não configurada')
-
-  const res = await fetch(`${BASE_URL}/tokens?appId=${publicKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'card', card }),
-  })
-
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`[pagarme] Erro ao tokenizar cartão (${res.status}): ${text}`)
-  }
-
-  const data = (await res.json()) as PagarmeTokenResponse
-  if (!data.id) throw new Error('[pagarme] Token de cartão não retornado')
-  return data.id
-}
-
 export type TransparentOrderResult =
   | { method: 'credit_card'; orderId: string; paid: boolean; failReason?: string }
   | { method: 'pix'; orderId: string; qrCode: string; qrCodeUrl: string }
@@ -272,34 +234,50 @@ export async function createPagarmeTransparentOrder(params: {
     }
   }
 
+  // Antifraude/validação da PagarMe exige o endereço de cobrança no nível da
+  // order (não basta no token do cartão): sem `customer.address`, transações de
+  // cartão originadas de certos IPs (ex.: datacenter da Vercel) são recusadas
+  // com "validation_error | billing | value is required".
+  if (params.payment.method === 'credit_card') {
+    const b = params.payment.billingAddress
+    customer.address = {
+      line_1: b.line1,
+      zip_code: b.zipCode.replace(/\D/g, ''),
+      city: b.city,
+      state: b.state.toUpperCase(),
+      country: 'BR',
+    }
+  }
+
   let payments: Record<string, unknown>[]
 
   switch (params.payment.method) {
     case 'credit_card': {
-      const token = await tokenizePagarmeCard({
-        number: params.payment.cardNumber,
-        holder_name: params.payment.cardName,
-        exp_month: parseInt(params.payment.expMonth, 10),
-        exp_year: parseInt(params.payment.expYear, 10),
-        cvv: params.payment.cvv,
-        // O gateway exige endereço de cobrança em transações de cartão;
-        // deve ir na tokenização (enviar `card` junto de `card_token` na
-        // order faz o gateway ignorar o token)
-        billing_address: {
-          line_1: params.payment.billingAddress.line1,
-          zip_code: params.payment.billingAddress.zipCode.replace(/\D/g, ''),
-          city: params.payment.billingAddress.city,
-          state: params.payment.billingAddress.state.toUpperCase(),
-          country: 'BR',
-        },
-      })
+      // Enviamos o cartão inline (com billing_address no próprio cartão da
+      // order) em vez de tokenizar à parte: o antifraude/validação da PagarMe
+      // exige o billing na transação, e o billing embutido no token NÃO era
+      // propagado de forma confiável a partir de certos IPs (ex.: datacenter
+      // da Vercel), causando "validation_error | billing | value is required".
       payments = [
         {
           payment_method: 'credit_card',
           credit_card: {
             installments: params.payment.installments,
             statement_descriptor: 'FABIOBORGES',
-            card_token: token,
+            card: {
+              number: params.payment.cardNumber,
+              holder_name: params.payment.cardName,
+              exp_month: parseInt(params.payment.expMonth, 10),
+              exp_year: parseInt(params.payment.expYear, 10),
+              cvv: params.payment.cvv,
+              billing_address: {
+                line_1: params.payment.billingAddress.line1,
+                zip_code: params.payment.billingAddress.zipCode.replace(/\D/g, ''),
+                city: params.payment.billingAddress.city,
+                state: params.payment.billingAddress.state.toUpperCase(),
+                country: 'BR',
+              },
+            },
           },
         },
       ]
