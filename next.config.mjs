@@ -20,6 +20,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      // Thumbnails de vídeos importados do Vimeo
+      {
+        protocol: 'https',
+        hostname: '**.vimeocdn.com',
+      },
     ],
   },
 
