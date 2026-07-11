@@ -309,7 +309,7 @@ async function handleStubPayment(params: {
       if (plan) {
         const now = new Date()
         const periodEnd = new Date(now)
-        periodEnd.setDate(periodEnd.getDate() + (plan.billingPeriod === 'annual' ? 365 : 30))
+        periodEnd.setDate(periodEnd.getDate() + 365) // 1 ano p/ 12x ou à vista (planosinfos.md)
 
         const { data: existing } = await supabase
           .from('subscriptions')
@@ -448,7 +448,7 @@ async function callPagarmeAndRespond(params: {
         if (plan) {
           const now = new Date()
           const periodEnd = new Date(now)
-          periodEnd.setDate(periodEnd.getDate() + (plan.billingPeriod === 'annual' ? 365 : 30))
+          periodEnd.setDate(periodEnd.getDate() + 365) // 1 ano p/ 12x ou à vista (planosinfos.md)
 
           const { data: existing } = await supabase
             .from('subscriptions')

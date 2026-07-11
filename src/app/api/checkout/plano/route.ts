@@ -67,7 +67,8 @@ export async function POST(request: Request) {
   if (isStub) {
     const now = new Date()
     const periodEnd = new Date(now)
-    periodEnd.setDate(periodEnd.getDate() + (billingPeriod === 'annual' ? 365 : 30))
+    // Todos os planos dão 1 ano de acesso (planosinfos.md), pago 12x ou à vista.
+    periodEnd.setDate(periodEnd.getDate() + 365)
 
     const { data: existing } = await supabase
       .from('subscriptions')
